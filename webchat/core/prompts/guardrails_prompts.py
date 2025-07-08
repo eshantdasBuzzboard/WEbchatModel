@@ -73,15 +73,72 @@ If the score is 0 then you need to return a reason why this request or query is 
 if the score is 1 then you can return "" empty string like this in the reason section.
 """
 
-query_checker_prompt = ChatPromptTemplate.from_messages(
-    [("system", query_checker_system_prompt), ("human", query_checker_user_prompt)]
-)
+query_checker_prompt: ChatPromptTemplate = ChatPromptTemplate.from_messages([
+    ("system", query_checker_system_prompt),
+    ("human", query_checker_user_prompt),
+])
 
 
 copyright_check_system_prompt = """
 You are a Query Validator agent. You need to analyse the query and check if in the query they are not asking to generate anything or not.
-The query will only be valid if they ask questions related to already generated website content and user
+The query will only be valid if they ask questions related to already generated website content and user.
 You will be given a search query and output of the website content so that you can understand the context well.
-queries something like 
-"You have missed something from website content"
+
+Here is the website output
+<website_output>
+{website_output}
+</website_output>
+
+Now you need to make very sure on few things . The user cannot ask few queries
+<queries_not_to_ask>
+1. User is not allowed to ask anything related to generating the content autoamtically thinking on its own.
+2. User is not allowed to generate something on its own for both H1 and H2 content. 
+3. User is not allowed to generate anything for  ("Header", "Leading Sentence" and "CTA Button").
+
+If any of these 3 points violates then make sure you are supposed to return a score "0" and mention the reason why the user is not allowed to ask in the query something like that.
+</queries_not_to_ask>
+<exception>
+Exception For H1 and H2 : (They can ask to change the heading but not the content. They can also mention something is missing from the left panel which should be covered or completed but they are not allowed to ask the AI to generate something on its own or add anything on its own. It is supposed to add only if user mentions something has gone missing ).
+</exception>
+
+
+In case the user does not violate the queries and does not ask anything from "<queries_not_to_ask>" then you are supposed to return a score "1" and no reason basically return an empty string in reason "".
 """
+
+
+copyright_check_user_prompt = """
+Here is your query
+<query>
+{query}
+</query>
+
+Make sure the query does not ask anything which violates the rules as per your task and based on that give score 0 or 1 accordingly.
+Make sure of the exception
+<exception>
+Exception For H1 and H2 : (They can ask to change the heading but not the content. They can also mention something is missing from the left panel which should be covered or completed but they are not allowed to ask the AI to generate something on its own or add anything on its own. It is supposed to add only if user mentions something has gone missing ). In this case score should be 1
+In case user asks something is missing and add in the content from the left panel or payload or input data then also score should be 1 . Score should be 0 only if user asks to generate things newly completely on its own.
+</exception>
+If these exception occurs then score should be 1 
+<few shot examples for exception>
+Can you check if you have missed anything from the content and add everything this time and nothing goes missing?
+Can you update the H1 to reflect the left panel’s keyword more accurately?
+I think a section from the original data is missing, can you check and include it?
+Please make sure all the fields from the input JSON are represented in the output.
+Can you replace the current H2 with the one from the original dataset?
+The CTA is fine, but I feel one H2 is not showing up — maybe it was in the input?
+One of the sections on the left was related to user benefits — can you ensure that is covered?
+Looks like some points from the payload didn’t make it into the generated content. Please correct that.
+Please don't generate anything new — just check if any input fields are missing from the output.
+Ensure nothing from the input source content is left out in the final webpage.
+Please change the H2 title but make sure the content stays the same as the original.
+</few shot examples for exception>
+
+
+If score is 0 then make sure to return the suggested things they can ask from the exception context.
+Make sure while giving the reason you remember to say since the copyright of this page is "no" and then ........ (you add the reason which you analysed.)
+"""
+
+copyright_check_prompt: ChatPromptTemplate = ChatPromptTemplate.from_messages([
+    ("system", copyright_check_system_prompt),
+    ("human", copyright_check_user_prompt),
+])
