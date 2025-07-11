@@ -6,7 +6,6 @@ from pydantic import BaseModel
 import json
 import logging
 import traceback
-from datetime import datetime
 from test_data import (
     main_payload_test_data,
     webpage_content_output_test_data,
@@ -72,9 +71,6 @@ async def get_data(set_number: int):
 
 
 def convert_page_keys_for_update(page_data):
-    """
-    Convert page keys from original format to the format expected by update_page_content
-    """
     key_map = {
         "Page Name": "Page_Name",
         "Meta Title (30 to 60 Characters)": "Meta_Title",
@@ -97,7 +93,6 @@ def convert_page_keys_for_update(page_data):
             converted_key = key_map[original_key]
             converted_page[converted_key] = value
         else:
-            # Keep original key if no mapping found
             converted_page[original_key] = value
 
     logger.info(f"Converted page keys: {list(converted_page.keys())}")
@@ -105,9 +100,6 @@ def convert_page_keys_for_update(page_data):
 
 
 def extract_updated_page_from_response(response, current_set, current_page):
-    """
-    Extract the specific updated page from the full response structure
-    """
     try:
         logger.info(f"=== EXTRACTION DEBUG ===")
         logger.info(
@@ -119,7 +111,6 @@ def extract_updated_page_from_response(response, current_set, current_page):
         if isinstance(response, list) and len(response) > 0:
             logger.info(f"Response structure length: {len(response)}")
 
-            # Log the structure of the first few elements
             for i, item in enumerate(response[:3]):
                 if isinstance(item, dict) and "pages" in item:
                     pages_count = len(item["pages"])
@@ -129,13 +120,10 @@ def extract_updated_page_from_response(response, current_set, current_page):
                             f"Set {i}: {pages_count} page(s), first page: {page_name}"
                         )
 
-            # The response structure appears to be: each set contains 1 page,
-            # and the page index corresponds to the set index in the response
             page_index_as_set = current_page
 
             logger.info(f"Using page index {current_page} as set index in response")
 
-            # Navigate to the specific page using page index as set index
             if page_index_as_set < len(response):
                 set_data = response[page_index_as_set]
                 logger.info(f"Set data type: {type(set_data)}")
@@ -147,7 +135,6 @@ def extract_updated_page_from_response(response, current_set, current_page):
                     pages = set_data["pages"]
                     logger.info(f"Pages array length: {len(pages)}")
 
-                    # Take the first (and likely only) page from this set
                     if len(pages) > 0:
                         updated_page = pages[0]
                         logger.info(
@@ -172,7 +159,6 @@ def extract_updated_page_from_response(response, current_set, current_page):
                 logger.error(
                     f"Page index {page_index_as_set} not found in response array of length {len(response)}"
                 )
-                # Log available sets for debugging
                 for i, set_item in enumerate(response):
                     if isinstance(set_item, dict) and "pages" in set_item:
                         pages_count = len(set_item["pages"])
@@ -236,15 +222,12 @@ async def ask_ai(request: AIRequest):
             if text_lower in h1_content.lower():
                 return "H1 Content"
 
-        # Check H2 sections - handle both formats
         if webpage_data.get("h2_sections"):
             for i, section in enumerate(webpage_data["h2_sections"]):
-                # Handle both "H2 Heading" and "H2_Heading" formats
                 h2_heading = section.get("H2 Heading") or section.get("H2_Heading")
                 if h2_heading and text_lower in h2_heading.lower():
                     return f"H2 Heading (Section {i + 1})"
 
-                # Handle both "H2 Content" and "H2_Content" formats
                 h2_content = section.get("H2 Content") or section.get("H2_Content")
                 if h2_content:
                     if isinstance(h2_content, list):
@@ -291,7 +274,6 @@ async def ask_ai(request: AIRequest):
             payload_output = combined_data[current_set - 1]
             webpage_output_for_api = webpage_content_output_test_data[current_set - 1]
 
-            # Fix the selected_text - remove the tuple wrapping
             selected_text_fixed = (
                 selected_text
                 if isinstance(selected_text, str)
@@ -331,7 +313,6 @@ async def ask_ai(request: AIRequest):
             if isinstance(response, list):
                 logger.info("Processing as successful update (list response)")
 
-                # Extract the specific updated page from the full response
                 updated_page = extract_updated_page_from_response(
                     response, current_set, current_page
                 )
@@ -341,7 +322,6 @@ async def ask_ai(request: AIRequest):
                         f"Successfully extracted updated page for Set {current_set}, Page {current_page}"
                     )
 
-                    # Convert the page keys to the format expected by update_page_content
                     converted_page = convert_page_keys_for_update(updated_page)
 
                     logger.info(f"Original page keys: {list(updated_page.keys())}")
@@ -353,7 +333,7 @@ async def ask_ai(request: AIRequest):
                     return {
                         "success": True,
                         "response": "Page content has been updated successfully!",
-                        "updated_content": [converted_page],  # Return converted page
+                        "updated_content": [converted_page],
                         "summary": simplified_response,
                     }
                 else:
@@ -402,9 +382,3 @@ AI Analysis: This is a regular AI response. To update page content, try asking q
             "response": ai_response,
             "summary": simplified_response,
         }
-
-
-if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run(app, host="0.0.0.0", port=8001)
