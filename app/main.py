@@ -1,27 +1,28 @@
+import sys
+import os
+
+# Mount templates with absolute path
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from fastapi import FastAPI
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 import logging
 
-from app.routers import home, api
+from .routers import home, api
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.FileHandler("log.log", mode="w", encoding="utf-8"),
-        logging.StreamHandler(),
-    ],
-)
+logging.basicConfig(level=logging.INFO)
 
 app = FastAPI()
 
-# Mount static files
-app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Mount templates
-templates = Jinja2Templates(directory="templates")
+template_path = os.path.join(
+    os.path.dirname(os.path.dirname(__file__)), "app", "templates"
+)
+templates = Jinja2Templates(directory=template_path)
 
 # Include routers
 app.include_router(home.router)
