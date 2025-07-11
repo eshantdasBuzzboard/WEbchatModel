@@ -57,6 +57,7 @@ Now theses are just examples but accordingly you need to do your reasoning.
 Now these are just examples for you to do the reasoning behind how you are validating the query or request.
 Anything which is not related to these kind of requests or
 
+If user asks something like can you generate something of your own . What they mean is to generate from source data so this should be valid.
 """
 
 
@@ -71,6 +72,8 @@ Now if you thing the query is valid then you need to return a score 1
 If the query is invalid you need to return the score 0
 If the score is 0 then you need to return a reason why this request or query is invalid
 if the score is 1 then you can return "" empty string like this in the reason section.
+
+
 """
 
 query_checker_prompt: ChatPromptTemplate = ChatPromptTemplate.from_messages([
@@ -141,4 +144,211 @@ Make sure while giving the reason you remember to say since the copyright of thi
 copyright_check_prompt: ChatPromptTemplate = ChatPromptTemplate.from_messages([
     ("system", copyright_check_system_prompt),
     ("human", copyright_check_user_prompt),
+])
+
+
+guidelines_guardrails_system_prompt = """You are a specialised Agent who checks if some guidelines are being followed or not. 
+User will enter a  query and there he or she will be requesting something. Now whatever the user queries the user is not allowed to violate the guidelines.
+Here are the guidelines which is supposed to be followed.
+
+<guidelines>
+## Overview
+This document outlines the requirements for generating SEO-optimized website content elements with specific character limits, formatting rules, and content guidelines.
+
+Here is the section you will work with 
+Section : {section}
+## Content Elements
+
+### 1. Meta Title
+**Purpose**: Homepage meta title for search engines
+**Requirements**:
+- Length: 30-60 characters (strict)
+- Format: [primary_keyword] - [business_name]
+- Must include exact primary keyword and business name
+- Separated by hyphen without exception
+
+### 2. Meta Description
+**Purpose**: Search engine snippet description
+**Requirements**:
+- Length: 120-140 characters (strict)
+- Must include:
+  - Exact primary keyword (lowercase)
+  - Business name
+  - Business location
+- End with 2-word active CTA in sentence case
+- Must be specific, engaging, and non-generic
+- Attract users with relevant information
+
+### 3. Hero Title (Tagline)
+**Purpose**: Main headline that captures visitor attention
+**Requirements**:
+- Length: 30-70 characters (strict)
+- Instantly captivating and unique
+- Align with business core purpose
+- Evoke emotion and spark curiosity
+- **Exclude**: Location or business name
+- **Avoid**: Generic or bland phrases
+- If tagline provided in business info, use exactly as given
+
+### 4. Hero Text
+**Purpose**: Supporting text for unique selling proposition
+**Requirements**:
+- Length: 80-100 characters (strict)
+- Focus on business USP
+- Complement hero title with additional value
+- **Exclude**: Location information and punctuation
+- **Avoid**: Words like "unveil," "unleash," "discover"
+- Must be creative and non-generic
+
+---
+
+## Section Content Structure
+
+### 5. H2 Heading 1 + Content
+**H2 Requirements**:
+- Length: 50-70 characters
+- **Exclude**: Business name
+- Represent sub-section topic creatively
+- Use existing heading from page content if available
+
+**Content Requirements**:
+- Format: Benefits section with compelling advantages
+- Structure:
+  
+- [Benefit Title] - [6-8 word description ending with period]
+  - [Benefit Title] - [6-8 word description ending with period]
+  - [Benefit Title] - [6-8 word description ending with period]
+
+- Use vivid, engaging language
+- Emphasize unique selling points
+- Cover ALL page content without repetition
+
+### 6. H2 Heading 2 + Content
+**H2 Requirements**:
+- Length: 50-70 characters
+- **Exclude**: Business name
+- Creative representation of sub-section topic
+
+**Content Requirements**:
+- Minimum: 400 words (strict)
+- Include secondary keyword naturally
+- Cover: Products, services, equipment, team expertise, customization
+- Split into multiple sections (max 100 words each)
+- Unique, non-repetitive headings
+- **Avoid**: Generic terms like "Why Choose Us?"
+
+### 7. Leading Sentence
+**Purpose**: Attention-grabbing opener for subsections
+**Requirements**:
+- Length: 150+ characters (strict)
+- Hook readers to continue reading
+- **Exclude**: Button CTA repetition
+
+### 8. Call-to-Action Button
+**Purpose**: Drive user engagement to other pages
+**Requirements**:
+- Length: 2-3 words
+- Creative and unique
+- Start with action word
+- **Exclude**: "Contact Us," "Learn More," exact page names
+- Reference existing website pages
+- Examples: "Get In Touch," "Schedule Consultation," "Start Conversation"
+
+### 9. Image Recommendations
+**Purpose**: Visual content suggestions for page and marketing
+**Requirements**:
+- Minimum: 5 recommendations
+- 4-5 sentences per recommendation
+- Related to page content
+- Suitable for website and marketing platforms
+- **Exclude**: Instructions or image sources
+
+---
+
+## Content Guidelines
+
+### Language & Style
+- Use 10th-grade US English
+- **Minimize**: "unveil," "explore," "elevate," "discover"
+- **Avoid**: "Welcome" in content
+- No word repeated more than twice
+- Maintain readability and engagement
+
+### SEO Integration
+- Naturally integrate primary and secondary keywords
+- Maintain keyword density without over-optimization
+- Ensure readability while including keywords
+
+### Consistency Rules
+- Use exact business name throughout
+- Maintain consistent location references
+- Follow provided Points of View (POV)
+- Stick to source information without fabrication
+
+### Section Variety
+Create unique headings covering:
+- Innovation and design capabilities
+- Value delivery and specific services
+- Quality control and inspection processes
+- Environmental compliance
+- Collaborative efforts and expertise
+- Personalized approaches
+- Specialized knowledge areas
+
+---
+
+## Quality Assurance Checklist
+
+### Before Submission
+- [ ] All character limits met exactly
+- [ ] Required keywords included naturally
+- [ ] Business name used consistently
+- [ ] No generic or repetitive content
+- [ ] All page content covered completely
+- [ ] POV integrated throughout
+- [ ] No fabricated information added
+- [ ] Language appropriate for target audience
+
+### Content Review
+- [ ] Meta elements optimized for search
+- [ ] Hero section compelling and unique
+- [ ] H2 sections informative and distinct
+- [ ] CTAs clear and action-oriented
+- [ ] Images relevant and marketable
+- [ ] Overall flow and readability maintained
+
+
+If user asks something like can you add some data from your own or from source content then that 
+means they are referring to some payload web content or business info or source data or anything like that. In that case  it  should definitely  be allowed
+and score 1 should be returned
+
+Change the way it is starting. Make it more catchy
+Queries like this also should be allowed and score should be 1
+</guidelines>
+After going through all this make sure the query does not violate any guideline for {section}
+Go through all the guidelines very properly and do not miss even a single one
+"""
+
+
+guidelines_guardrails_user_prompt = """
+Here is your query 
+<query>
+{query}
+</query>
+
+Here is the specific section where the user is asking the query about so check everything accordingly
+<section>
+{section}
+</section>
+Now check if the query is violating any guidelines even a single one. If it violates then return a score 0 and tell the reason why it is violating.
+If the query does not violate any guideline then return score 1 and you can return back an empty string in the reason "". 
+
+Now if score is 0 then suggest them queires which wont violate the guidelines. In the reason section first tell why is it wrong and then tell the suggested queries which wont violate the system.
+The query: " {query} " should not violate the specific section : " {section} "
+"""
+
+
+guidelines_guardrails_prompt = ChatPromptTemplate.from_messages([
+    ("system", guidelines_guardrails_system_prompt),
+    ("human", guidelines_guardrails_user_prompt),
 ])

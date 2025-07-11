@@ -30,4 +30,6 @@ class Page(BaseModel):
     Header: Union[str, None] = Field(None, alias="Header")
     Leading_Sentence: Union[str, None] = Field(None, alias="Leading Sentence")
     CTA_Button: Union[str, None] = Field(None, alias="CTA Button")
-    Image_Recommendations: List[str] = Field(..., alias="Image Recommendations")
+    Image_Recommendations: List[str] = Field(
+        default=None, alias="Image Recommendations"
+    )

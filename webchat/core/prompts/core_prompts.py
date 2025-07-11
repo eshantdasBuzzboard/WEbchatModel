@@ -8,6 +8,9 @@ the specific page of the website content. If it has a key value pair of key as c
 is available like not null make sure you use that precisely. If it has keywords then do not miss that.
 This is about the left panel information.
 
+ You will also be given the name of the page which you need to update and the section you need to update.
+ So the user will drag some piece of text and send that to you for changing it . Focus mostly on that piece of text which the user has dragged which is supposed to get altered
+
 You need to highly focus on the query requested by the user and based on that you need to update the 
 current website page output. So you will also be given the current website output and based on that you need to update it
 in whatever the user is requesting in his or her query and you need to update it accordingly pretty well.
@@ -16,28 +19,69 @@ Make sure you return the output in the same json structure in which you are bein
 So now all you need to do is highly focus on the query which the user sends and generate or update or remove or add
 the section of the website content which the user is asking considering the "business information" and the "left panel information".
 You need to just keep those info in your mind and based on that you need to generate . Highly focus on the content section of the left panel information if it is not null.
+
 """
 
 
 website_update_content_user_prompt = """
 
+
+We are now updating the {page_name} page. 
+Here is your business info 
+<business_info>
+{business_info}
+</business_info>
+
+Here is your left panel info
+<left_panel_info>
+{left_panel_info}
+<left_panel_info>
+
+Here is the output of the website page which you need to update and return in the same json structure 
+as it is
+<current_output>
+{current_output}
+</current_output>
+
+
+Here is the section which are going to focus
+<section>
+{section}
+</section>
+
+Here is the text that has been dragged in the UI to change
+<text_to_change>
+{text_to_change}
+</text_to_change>
+
+
+Here is the main query which you need to focus on and based on that update the specific section of the  current output
+<query>
+{query}
+</query>
+
+
+
+Make sure you return in the same structure as the current output.
 Before Generating make sure you follow all these guidelines precisely
 
-
+The guidelines below are very important and strict.
 <guidelines>
 ## Overview
 This document outlines the requirements for generating SEO-optimized website content elements with specific character limits, formatting rules, and content guidelines.
 
-
+Here is the section you will work with 
+Section : {section}
 ## Content Elements
 
 ### 1. Meta Title
 **Purpose**: Homepage meta title for search engines
 **Requirements**:
 - Length: 30-60 characters (strict)
-- Format: `[primary_keyword] - [business_name]`
+- Format: [primary_keyword] - [business_name]
 - Must include exact primary keyword and business name
 - Separated by hyphen without exception
+- Make sure whatever happens this structure is followed
 
 ### 2. Meta Description
 **Purpose**: Search engine snippet description
@@ -86,11 +130,11 @@ This document outlines the requirements for generating SEO-optimized website con
 **Content Requirements**:
 - Format: Benefits section with compelling advantages
 - Structure:
-  ```
+  
+- [Benefit Title] - [6-8 word description ending with period]
   - [Benefit Title] - [6-8 word description ending with period]
   - [Benefit Title] - [6-8 word description ending with period]
-  - [Benefit Title] - [6-8 word description ending with period]
-  ```
+
 - Use vivid, engaging language
 - Emphasize unique selling points
 - Cover ALL page content without repetition
@@ -188,34 +232,10 @@ Create unique headings covering:
 - [ ] CTAs clear and action-oriented
 - [ ] Images relevant and marketable
 - [ ] Overall flow and readability maintained
+
 </guidelines>
 
-
-Here is your business info 
-<business_info>
-{business_info}
-</business_info>
-
-Here is your left panel info
-<left_panel_info>
-{left_panel_info}
-<left_panel_info>
-
-Here is the output of the website page which you need to update and return in the same json structure 
-as it is
-<current_output>
-{current_output}
-</current_output>
-
-
-
-
-Here is the main query which you need to focus on and based on that update the specific section of the  current output
-<query>
-{query}
-</query>
-
-Make sure you return in the same structure as the current output.
+Make sure these guidelines are strictly followed before you generate anything
 """
 
 website_update_prompt = ChatPromptTemplate.from_messages([

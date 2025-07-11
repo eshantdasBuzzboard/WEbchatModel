@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zylo WebPage Content</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <button id="toggleSidebar" class="sidebar-toggle">☰</button>
+                <h1>Zylo WebPage Content</h1>
+            </div>
+            <div class="header-right">
+                <div class="set-selector">
+                    <label for="setSelect">Select Set:</label>
+                    <select id="setSelect">
+                        <option value="1">Set 1</option>
+                        <option value="2">Set 2</option>
+                        <option value="3">Set 3</option>
+                    </select>
+                </div>
+                <button id="businessInfoToggle" class="business-info-btn">Business Info</button>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <!-- Left Sidebar -->
+            <aside id="sidebar" class="sidebar">
+                <div class="sidebar-header">
+                    <h3>Main Payload Data</h3>
+                </div>
+                <div class="sidebar-content">
+                    <!-- Page Tabs -->
+                    <div id="pageTabs" class="page-tabs">
+                        <!-- Page tabs will be generated here -->
+                    </div>
+                    <div id="payloadContent" class="payload-content">
+                        <!-- Main payload data will be loaded here -->
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Center Content -->
+            <main class="center-content">
+                <div class="content-header">
+                    <h2>Webpage Content Output</h2>
+                    <div id="currentPageInfo" class="current-page-info">
+                        <!-- Current page info will be displayed here -->
+                    </div>
+                </div>
+                <div id="webpageContent" class="webpage-content">
+                    <!-- Webpage content will be loaded here -->
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Business Info Modal -->
+    <div id="businessModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Business Information</h3>
+                <span class="close" id="closeModal">&times;</span>
+            </div>
+            <div id="businessContent" class="modal-body">
+                <!-- Business info will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Ask AI Modal -->
+    <div id="askAIModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Ask AI</h3>
+                <span class="close" id="closeAIModal">&times;</span>
+            </div>
+            <div id="askAIContent" class="modal-body">
+                <div class="ai-modal-section">
+                    <h4>Selected Text:</h4>
+                    <div id="selectedTextDisplay" class="selected-text-display"></div>
+                </div>
+                
+                <div class="ai-modal-section">
+                    <h4>Your Question:</h4>
+                    <textarea id="userQuestion" placeholder="Ask anything about the selected content..." rows="4"></textarea>
+                </div>
+                
+                <div class="ai-modal-actions">
+                    <button id="sendAIQuestion" class="ai-send-btn">
+                        <span class="send-icon">🚀</span>
+                        Send Question
+                    </button>
+                </div>
+                
+                <!-- Loading Spinner -->
+                <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Processing your request...</p>
+                </div>
+                
+                <div id="aiResponse" class="ai-response" style="display: none;">
+                    <h4>AI Response:</h4>
+                    <div id="aiResponseContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Text Selection Tooltip -->
+    <div id="textSelectionTooltip" class="text-selection-tooltip" style="display: none;">
+        <button id="askAIButton" class="ask-ai-button">
+            🤖 Ask AI
+        </button>
+    </div>
+
+    <!-- Success Toast -->
+    <div id="successToast" class="toast success-toast" style="display: none;">
+        <div class="toast-content">
+            <span class="toast-icon">✅</span>
+            <span class="toast-message">Page has been successfully updated!</span>
+        </div>
+    </div>
+
+    <script>
+        // Initial data from server
+        const initialData = {
+            main_payload: {{ main_payload_data | tojson }},
+            webpage_content: {{ webpage_content_data | tojson }},
+            business_info: {{ business_info | tojson }}
+        };
+
+        console.log('Initial Data:', initialData); // Debug log
+
+        // DOM elements
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('toggleSidebar');
+        const setSelect = document.getElementById('setSelect');
+        const businessModal = document.getElementById('businessModal');
+        const businessToggle = document.getElementById('businessInfoToggle');
+        const closeModal = document.getElementById('closeModal');
+        const payloadContent = document.getElementById('payloadContent');
+        const webpageContent = document.getElementById('webpageContent');
+        const businessContent = document.getElementById('businessContent');
+        const pageTabs = document.getElementById('pageTabs');
+        const currentPageInfo = document.getElementById('currentPageInfo');
+        
+        // AI Modal elements
+        const askAIModal = document.getElementById('askAIModal');
+        const closeAIModal = document.getElementById('closeAIModal');
+        const textSelectionTooltip = document.getElementById('textSelectionTooltip');
+        const askAIButton = document.getElementById('askAIButton');
+        const selectedTextDisplay = document.getElementById('selectedTextDisplay');
+        const userQuestion = document.getElementById('userQuestion');
+        const sendAIQuestion = document.getElementById('sendAIQuestion');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const aiResponse = document.getElementById('aiResponse');
+        const aiResponseContent = document.getElementById('aiResponseContent');
+        const successToast = document.getElementById('successToast');
+
+        // Current state
+        let currentSet = 1;
+        let currentPageIndex = 0;
+        let selectedText = '';
+        let currentWebpageData = {};
+        let currentPayloadData = {};
+        let currentBusinessData = {};
+
+        // Sidebar toggle functionality
+        toggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+        });
+
+        // Set selector change handler
+        setSelect.addEventListener('change', (e) => {
+            currentSet = parseInt(e.target.value);
+            currentPageIndex = 0; // Reset to first page when changing sets
+            loadDataForSet(currentSet);
+        });
+
+        // Business info modal handlers
+        businessToggle.addEventListener('click', () => {
+            loadBusinessInfo(currentSet);
+            businessModal.style.display = 'block';
+        });
+
+        closeModal.addEventListener('click', () => {
+            businessModal.style.display = 'none';
+        });
+
+        // AI Modal handlers
+        askAIButton.addEventListener('click', () => {
+            selectedTextDisplay.textContent = selectedText;
+            askAIModal.style.display = 'block';
+            textSelectionTooltip.style.display = 'none';
+            userQuestion.focus();
+        });
+
+        closeAIModal.addEventListener('click', () => {
+            askAIModal.style.display = 'none';
+            clearSelection();
+        });
+
+        // Show success toast
+        function showSuccessToast() {
+            successToast.style.display = 'block';
+            setTimeout(() => {
+                successToast.style.display = 'none';
+            }, 3000);
+        }
+
+        // Convert page keys from update format back to display format
+        function convertPageKeysFromUpdate(pageData) {
+            const keyMap = {
+                "Page_Name": "Page Name",
+                "Meta_Title": "Meta Title (30 to 60 Characters)",
+                "Meta_Description": "Meta Description (70 to 143 Characters)",
+                "Hero_Title": "Hero Title (20 to 70 Characters)",
+                "Hero_Text": "Hero Text (50 to 100 Characters)",
+                "Hero_CTA": "Hero CTA",
+                "Header": "Header",
+                "Leading_Sentence": "Leading Sentence",
+                "CTA_Button": "CTA Button",
+                "Image_Recommendations": "Image Recommendations",
+                "h2_sections": "h2_sections",
+                "H1": "H1 (30 to 70 Characters)",
+                "H1_Content": "H1 Content"
+            };
+            
+            const convertedPage = {};
+            for (const [key, value] of Object.entries(pageData)) {
+                if (keyMap[key]) {
+                    convertedPage[keyMap[key]] = value;
+                } else {
+                    convertedPage[key] = value;
+                }
+            }
+            
+            console.log('Converted page keys from update format:', Object.keys(convertedPage));
+            return convertedPage;
+        }
+
+        // Update webpage content with new data
+        function updateWebpageContent(newData) {
+            console.log('Updating webpage content with:', newData);
+            
+            // Handle the case where newData might be the full structure or just the page
+            let pageData = newData;
+            
+            // If newData is an array with the full structure, extract the current page
+            if (Array.isArray(newData) && newData.length > 0) {
+                const firstItem = newData[0];
+                
+                // Check if this is a single page or full structure
+                if (firstItem.pages) {
+                    // Full structure format
+                    const setIndex = currentSet - 1;
+                    const pageIndex = currentPageIndex;
+                    
+                    if (firstItem.pages && firstItem.pages[pageIndex]) {
+                        pageData = firstItem.pages[pageIndex];
+                        console.log('Extracted page data from full structure:', pageData);
+                    } else {
+                        console.error('Could not extract page data from structure');
+                        return;
+                    }
+                } else {
+                    // Single page format - check if it needs key conversion
+                    if (firstItem.Page_Name || firstItem.Meta_Title) {
+                        // This is the update format, convert it back
+                        pageData = convertPageKeysFromUpdate(firstItem);
+                        console.log('Converted page data from update format:', pageData);
+                    } else {
+                        // Already in display format
+                        pageData = firstItem;
+                        console.log('Using direct page data:', pageData);
+                    }
+                }
+            } else if (typeof newData === 'object' && newData['Page Name']) {
+                // newData is already the page object in display format
+                pageData = newData;
+                console.log('Using direct page data:', pageData);
+            } else if (typeof newData === 'object' && newData['Page_Name']) {
+                // newData is in update format, convert it
+                pageData = convertPageKeysFromUpdate(newData);
+                console.log('Converted single page from update format:', pageData);
+            } else {
+                console.error('Invalid newData structure:', newData);
+                return;
+            }
+            
+            // Update the current webpage data
+            currentWebpageData = pageData;
+            
+            // Update the global data structure
+            const setIndex = currentSet - 1;
+            if (initialData.webpage_content[setIndex] && 
+                initialData.webpage_content[setIndex][currentPageIndex] && 
+                initialData.webpage_content[setIndex][currentPageIndex].pages) {
+                initialData.webpage_content[setIndex][currentPageIndex].pages[0] = pageData;
+                console.log('Updated global data structure');
+            }
+            
+            // Re-render the webpage content
+            displayWebpageContentSinglePage(pageData);
+            
+            // Show success message
+            showSuccessToast();
+        }
+
+        sendAIQuestion.addEventListener('click', async () => {
+            const question = userQuestion.value.trim();
+            if (!question) {
+                alert('Please enter a question!');
+                return;
+            }
+
+            // Show loading state
+            sendAIQuestion.disabled = true;
+            loadingSpinner.style.display = 'block';
+            aiResponse.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/ask-ai', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        selected_text: selectedText,
+                        user_question: question,
+                        current_set: currentSet,
+                        current_page: currentPageIndex,
+                        webpage_output: currentWebpageData,
+                        payload_output: currentPayloadData,
+                        business_info: currentBusinessData
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Check if response contains updated page content
+                    if (data.updated_content) {
+                        // Check if the response is a list (successful update)
+                        if (Array.isArray(data.updated_content)) {
+                            // Update the page with new content
+                            updateWebpageContent(data.updated_content[0]); // Assuming first item is the updated page
+                            
+                            // Show success message in AI response
+                            aiResponseContent.innerHTML = '<div class="success-message"><p>✅ Page has been successfully updated with your changes!</p></div>';
+                            aiResponse.style.display = 'block';
+                        } else if (typeof data.updated_content === 'string') {
+                            // Page update failed, show the reason
+                            aiResponseContent.innerHTML = `<div class="error-message"><p>❌ Page update failed: ${data.updated_content}</p></div>`;
+                            aiResponse.style.display = 'block';
+                        }
+                    } else {
+                        // Regular AI response without page update
+                        aiResponseContent.innerHTML = `<pre>${data.response}</pre>`;
+                        aiResponse.style.display = 'block';
+                    }
+                } else {
+                    aiResponseContent.innerHTML = '<div class="error-message"><p>Sorry, there was an error processing your request.</p></div>';
+                    aiResponse.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                aiResponseContent.innerHTML = '<div class="error-message"><p>Sorry, there was an error connecting to the AI service.</p></div>';
+                aiResponse.style.display = 'block';
+            } finally {
+                // Reset button state and hide loading
+                sendAIQuestion.disabled = false;
+                loadingSpinner.style.display = 'none';
+            }
+        });
+
+        window.addEventListener('click', (e) => {
+            if (e.target === businessModal) {
+                businessModal.style.display = 'none';
+            }
+            if (e.target === askAIModal) {
+                askAIModal.style.display = 'none';
+                clearSelection();
+            }
+        });
+
+        // Text selection functionality
+        document.addEventListener('mouseup', (e) => {
+            // Only show tooltip if selection is within webpage content
+            if (!webpageContent.contains(e.target)) {
+                textSelectionTooltip.style.display = 'none';
+                return;
+            }
+
+            const selection = window.getSelection();
+            const text = selection.toString().trim();
+            
+            if (text.length > 0) {
+                selectedText = text;
+                showTooltip(e);
+            } else {
+                textSelectionTooltip.style.display = 'none';
+            }
+        });
+
+        // Hide tooltip when clicking elsewhere
+        document.addEventListener('click', (e) => {
+            if (!textSelectionTooltip.contains(e.target) && !askAIModal.contains(e.target)) {
+                if (window.getSelection().toString().trim() === '') {
+                    textSelectionTooltip.style.display = 'none';
+                }
+            }
+        });
+
+        function showTooltip(event) {
+            const tooltip = textSelectionTooltip;
+            tooltip.style.display = 'block';
+            
+            // Position tooltip near the selection
+            const x = event.pageX + 10;
+            const y = event.pageY - 40;
+            
+            tooltip.style.left = x + 'px';
+            tooltip.style.top = y + 'px';
+        }
+
+        function clearSelection() {
+            window.getSelection().removeAllRanges();
+            selectedText = '';
+            userQuestion.value = '';
+            aiResponse.style.display = 'none';
+            loadingSpinner.style.display = 'none';
+        }
+
+        // Load data for specific set
+        function loadDataForSet(setNumber) {
+            console.log('Loading data for set:', setNumber); // Debug log
+            const index = setNumber - 1;
+            currentSet = setNumber;
+            currentPageIndex = 0;
+            
+            // Generate page tabs
+            if (initialData.main_payload && initialData.main_payload[index] && initialData.main_payload[index].pages) {
+                console.log('Generating tabs for pages:', initialData.main_payload[index].pages); // Debug log
+                generatePageTabs(initialData.main_payload[index].pages);
+                // Load first page by default
+                loadPageData(0);
+            } else {
+                console.error('No pages found for set', setNumber);
+                pageTabs.innerHTML = '<p>No pages available for this set</p>';
+                payloadContent.innerHTML = '<p>No payload data available</p>';
+                webpageContent.innerHTML = '<p>No webpage content available</p>';
+            }
+        }
+
+        // Generate page tabs
+        function generatePageTabs(pages) {
+            let tabsHtml = '<div class="tabs-container">';
+            
+            pages.forEach((page, index) => {
+                const pageName = page.title || page['Page Name'] || `Page ${index + 1}`;
+                tabsHtml += `
+                    <button class="page-tab ${index === 0 ? 'active' : ''}" 
+                            onclick="loadPageData(${index})" 
+                            data-page-index="${index}">
+                        ${pageName}
+                    </button>
+                `;
+            });
+            
+            tabsHtml += '</div>';
+            pageTabs.innerHTML = tabsHtml;
+        }
+
+        // Load specific page data
+        function loadPageData(pageIndex) {
+            console.log('Loading page data for index:', pageIndex); // Debug log
+            currentPageIndex = pageIndex;
+            const setIndex = currentSet - 1;
+            
+            // Update active tab
+            document.querySelectorAll('.page-tab').forEach((tab, index) => {
+                tab.classList.toggle('active', index === pageIndex);
+            });
+            
+            // Load main payload data for this specific page
+            if (initialData.main_payload[setIndex] && initialData.main_payload[setIndex].pages[pageIndex]) {
+                currentPayloadData = initialData.main_payload[setIndex].pages[pageIndex];
+                displayMainPayloadSinglePage(currentPayloadData);
+            }
+            
+            // Load webpage content data for this specific page
+            console.log('Looking for webpage content at:', setIndex, pageIndex); // Debug log
+            console.log('Webpage content structure:', initialData.webpage_content[setIndex]); // Debug log
+            
+            if (initialData.webpage_content[setIndex] && 
+                initialData.webpage_content[setIndex][pageIndex] && 
+                initialData.webpage_content[setIndex][pageIndex].pages && 
+                initialData.webpage_content[setIndex][pageIndex].pages[0]) {
+                console.log('Found webpage content:', initialData.webpage_content[setIndex][pageIndex].pages[0]); // Debug log
+                currentWebpageData = initialData.webpage_content[setIndex][pageIndex].pages[0];
+                displayWebpageContentSinglePage(currentWebpageData);
+            } else {
+                console.log('No webpage content found for this page'); // Debug log
+                webpageContent.innerHTML = '<p>No webpage content available for this page</p>';
+                currentWebpageData = {};
+            }
+
+            // Update business info
+            currentBusinessData = initialData.business_info[setIndex] || {};
+            
+            // Update current page info
+            const pageName = initialData.main_payload[setIndex].pages[pageIndex].title || 
+                           initialData.main_payload[setIndex].pages[pageIndex]['Page Name'] || 
+                           `Page ${pageIndex + 1}`;
+            currentPageInfo.innerHTML = `<span class="current-page-label">Current Page:</span> <span class="page-name">${pageName}</span>`;
+        }
+
+        // Display single page main payload data in sidebar
+        function displayMainPayloadSinglePage(page) {
+            let html = '<div class="data-section single-page">';
+            
+            html += `
+                <div class="page-section">
+                    <h4>${page.title || page['Page Name'] || 'Page'}</h4>
+                    <div class="page-details">
+                        <div class="detail-group">
+                            <p><strong>Copy Service:</strong> <span class="value">${page.copyService || 'N/A'}</span></p>
+                            <p><strong>Copy:</strong> <span class="value">${page.copy || 'N/A'}</span></p>
+                            <p><strong>Point of View:</strong> <span class="value">${page.pointOfView || 'N/A'}</span></p>
+                            <p><strong>Parent:</strong> <span class="value">${page.parent || 'N/A'}</span></p>
+                        </div>
+                        
+                        ${page.customerAction ? `
+                            <div class="detail-group">
+                                <h5>Customer Action</h5>
+                                <p class="action-text">${page.customerAction}</p>
+                            </div>
+                        ` : ''}
+                        
+                        ${page.keywords && page.keywords.length > 0 ? `
+                            <div class="detail-group">
+                                <h5>Keywords</h5>
+                                <div class="keywords-list">
+                                    ${page.keywords.map(keyword => `
+                                        <span class="keyword-tag">${keyword}</span>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        ${page.content && page.content.trim() !== 'INSERT COPYWRITE' && page.content.trim() !== 'Insert Copywriting' && page.content.trim() !== 'Insert copywriting' ? `
+                            <div class="detail-group">
+                                <h5>Content</h5>
+                                <div class="content-preview">
+                                    ${page.content.length > 300 ? 
+                                        `<p>${page.content.substring(0, 300)}...</p>
+                                         <button class="expand-btn" onclick="toggleContent(this)">Show More</button>
+                                         <div class="full-content" style="display: none;">
+                                            <p>${page.content}</p>
+                                            <button class="collapse-btn" onclick="toggleContent(this)">Show Less</button>
+                                         </div>` :
+                                        `<p>${page.content}</p>`
+                                    }
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        ${page.pageInstruction ? `
+                            <div class="detail-group">
+                                <h5>Page Instructions</h5>
+                                <div class="instruction-box">
+                                    <p>${page.pageInstruction}</p>
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        ${page.businesshistory ? `
+                            <div class="detail-group">
+                                <h5>Business History</h5>
+                                <div class="history-box">
+                                    <p>${page.businesshistory}</p>
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        ${page.copyRequestDescription ? `
+                            <div class="detail-group">
+                                <h5>Copy Request Description</h5>
+                                <div class="description-box">
+                                    <p>${page.copyRequestDescription}</p>
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+            
+            html += '</div>';
+            payloadContent.innerHTML = html;
+        }
+
+        // Toggle content expansion
+        function toggleContent(button) {
+            const contentGroup = button.closest('.detail-group');
+            const preview = contentGroup.querySelector('.content-preview p');
+            const fullContent = contentGroup.querySelector('.full-content');
+            const expandBtn = contentGroup.querySelector('.expand-btn');
+            
+            if (fullContent.style.display === 'none') {
+                preview.style.display = 'none';
+                expandBtn.style.display = 'none';
+                fullContent.style.display = 'block';
+            } else {
+                preview.style.display = 'block';
+                expandBtn.style.display = 'inline-block';
+                fullContent.style.display = 'none';
+            }
+        }
+
+        // Display single page webpage content in center
+        function displayWebpageContentSinglePage(page) {
+            let html = '<div class="content-section single-page-content">';
+            
+            html += `
+                <div class="content-item">
+                    <div class="page-header">
+                        <h4>${page['Page Name'] || 'Page Content'}</h4>
+                    </div>
+                    
+                    <div class="content-value">
+                        ${page['Meta Title (30 to 60 Characters)'] || page['Meta Title'] ? `
+                            <div class="meta-section">
+                                <h5>Meta Information</h5>
+                                <div class="meta-grid">
+                                    ${page['Meta Title (30 to 60 Characters)'] || page['Meta Title'] ? 
+                                        `<div class="meta-item">
+                                            <strong>Meta Title:</strong>
+                                            <span>${page['Meta Title (30 to 60 Characters)'] || page['Meta Title']}</span>
+                                        </div>` : ''
+                                    }
+                                    ${page['Meta Description (70 to 143 Characters)'] || page['Meta Description'] ? 
+                                        `<div class="meta-item">
+                                            <strong>Meta Description:</strong>
+                                            <span>${page['Meta Description (70 to 143 Characters)'] || page['Meta Description']}</span>
+                                        </div>` : ''
+                                    }
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        ${page['Hero Title (20 to 70 Characters)'] || page['Hero Title'] ? `
+                            <div class="hero-section">
+                                <h5>Hero Section</h5>
+                                <div class="hero-content">
+                                    ${page['Hero Title (20 to 70 Characters)'] || page['Hero Title'] ? 
+                                        `<div class="hero-item">
+                                            <strong>Hero Title:</strong>
+                                            <span class="hero-title">${page['Hero Title (20 to 70 Characters)'] || page['Hero Title']}</span>
+                                        </div>` : ''
+                                    }
+                                    ${page['Hero Text (50 to 100 Characters)'] || page['Hero Text'] ? 
+                                        `<div class="hero-item">
+                                            <strong>Hero Text:</strong>
+                                            <span>${page['Hero Text (50 to 100 Characters)'] || page['Hero Text']}</span>
+                                        </div>` : ''
+                                    }
+                                    ${page['Hero CTA'] ? 
+                                        `<div class="hero-item">
+                                            <strong>Hero CTA:</strong>
+                                            <span class="cta-text">${page['Hero CTA']}</span>
+                                        </div>` : ''
+                                    }
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        ${page['H1 (30 to 70 Characters)'] || page['H1'] ? `
+                            <div class="h1-section">
+                                <h5>H1 Section</h5>
+                                <div class="h1-content">
+                                    <div class="h1-item">
+                                        <strong>H1:</strong>
+                                        <span class="h1-title">${page['H1 (30 to 70 Characters)'] || page['H1']}</span>
+                                    </div>
+                                    ${page['H1 Content'] ? `
+                                        <div class="h1-item">
+                                            <strong>H1 Content:</strong>
+                                            <div class="h1-text">${Array.isArray(page['H1 Content']) ? page['H1 Content'].join(' ') : page['H1 Content']}</div>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        ${page.h2_sections && page.h2_sections.length > 0 ? `
+                            <div class="h2-sections">
+                                <h5>H2 Sections</h5>
+                                <div class="h2-grid">
+                                    ${page.h2_sections.map((section, index) => `
+                                        <div class="h2-section">
+                                            <div class="h2-header">
+                                                <h6>${section['H2 Heading'] || section['H2_Heading'] || 'Section ' + (index + 1)}</h6>
+                                            </div>
+                                            <div class="h2-content">
+                                                ${Array.isArray(section['H2 Content'] || section['H2_Content']) ? 
+                                                    (section['H2 Content'] || section['H2_Content']).map(item => `<p>• ${item}</p>`).join('') :
+                                                    `<p>${section['H2 Content'] || section['H2_Content'] || 'No content available'}</p>`
+                                                }
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        ${page.Header || page['Leading Sentence'] || page['CTA Button'] ? `
+                            <div class="additional-section">
+                                <h5>Additional Information</h5>
+                                <div class="additional-grid">
+                                    ${page.Header ? `
+                                        <div class="additional-item">
+                                            <strong>Header:</strong>
+                                            <span>${page.Header}</span>
+                                        </div>
+                                    ` : ''}
+                                    ${page['Leading Sentence'] ? `
+                                        <div class="additional-item">
+                                            <strong>Leading Sentence:</strong>
+                                            <span>${page['Leading Sentence']}</span>
+                                        </div>
+                                    ` : ''}
+                                    ${page['CTA Button'] ? `
+                                        <div class="additional-item">
+                                            <strong>CTA Button:</strong>
+                                            <span class="cta-text">${page['CTA Button']}</span>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        ${page['Image Recommendations'] && page['Image Recommendations'].length > 0 ? `
+                            <div class="image-recommendations">
+                                <h5>Image Recommendations</h5>
+                                <div class="image-list">
+                                    ${page['Image Recommendations'].map((img, imgIndex) => `
+                                        <div class="image-rec">
+                                            <span class="img-number">${imgIndex + 1}</span>
+                                            <p>${img}</p>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+            
+            html += '</div>';
+            webpageContent.innerHTML = html;
+        }
+
+        // Load business info for modal
+        function loadBusinessInfo(setNumber) {
+            const index = setNumber - 1;
+            const data = initialData.business_info[index];
+            
+            let html = '<div class="business-section">';
+            
+            if (data && typeof data === 'object') {
+                html += `
+                    <div class="business-item">
+                        <h4>Business Name</h4>
+                        <div class="business-value">${data.businessName || 'N/A'}</div>
+                    </div>
+                    <div class="business-item">
+                        <h4>Country</h4>
+                        <div class="business-value">${data.country || 'N/A'}</div>
+                    </div>
+                    <div class="business-item">
+                        <h4>Product Type</h4>
+                        <div class="business-value">${data.product_type || 'N/A'}</div>
+                    </div>
+                `;
+                
+                if (data.business_info) {
+                    // Parse the business_info string into readable format
+                    const businessInfoLines = data.business_info.split('\\n');
+                    html += `
+                        <div class="business-item">
+                            <h4>Business Information</h4>
+                            <div class="business-value business-info-detailed">
+                    `;
+                    
+                    businessInfoLines.forEach(line => {
+                        if (line.includes(':')) {
+                            const [key, ...valueParts] = line.split(':');
+                            const value = valueParts.join(':');
+                            if (value && value.trim()) {
+                                html += `<p><strong>${key.replace(/([A-Z])/g, ' $1').trim()}:</strong> ${value}</p>`;
+                            }
+                        }
+                    });
+                    
+                    html += `
+                            </div>
+                        </div>
+                    `;
+                }
+            } else {
+                html += '<p>No business information available</p>';
+            }
+            
+            html += '</div>';
+            businessContent.innerHTML = html;
+        }
+
+        // Initialize with Set 1 data
+        loadDataForSet(1);
+    </script>
+
+    <style>
+        /* Loading Spinner Styles */
+        .loading-spinner {
+            text-align: center;
+            padding: 2rem;
+            background: var(--gray-50);
+            border-radius: 12px;
+            border: 1px solid var(--gray-200);
+            margin: 1rem 0;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--gray-200);
+            border-top: 4px solid var(--primary-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-spinner p {
+            color: var(--gray-600);
+            font-weight: 500;
+            margin: 0;
+        }
+
+        /* Success and Error Message Styles */
+        .success-message {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 1rem 0;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .success-message p {
+            margin: 0;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .error-message {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 1rem 0;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        .error-message p {
+            margin: 0;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Toast Notification Styles */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10001;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            animation: slideInRight 0.3s ease-out;
+            min-width: 300px;
+        }
+
+        .success-toast {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .toast-content {
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .toast-icon {
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .toast-message {
+            font-weight: 600;
+            flex: 1;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Enhanced AI Response Styles */
+        #aiResponseContent pre {
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            padding: 1rem;
+            white-space: pre-wrap;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        /* Disabled button state */
+        .ai-send-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: var(--shadow-sm) !important;
+        }
+
+        /* Enhanced visual feedback for updated content */
+        .content-item.updated {
+            animation: highlightUpdate 2s ease-out;
+        }
+
+        @keyframes highlightUpdate {
+            0% {
+                background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+                transform: scale(1.02);
+            }
+            100% {
+                background: var(--white);
+                transform: scale(1);
+            }
+        }
+    </style>
+</body>
+</html>

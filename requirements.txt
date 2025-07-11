@@ -1,3 +1,7 @@
 langchain
 langchain_openai
 python-dotenv
+fastapi
+uvicorn
+jinja2
+python-multipart
