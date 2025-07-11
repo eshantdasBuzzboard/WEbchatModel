@@ -160,7 +160,7 @@ Here is the section you will work with
 Section : {section}
 ## Content Elements
 
-### 1. Meta Title
+### 1. Meta Title (This is only for meta title)
 **Purpose**: Homepage meta title for search engines
 **Requirements**:
 - Length: 30-60 characters (strict)
@@ -169,7 +169,7 @@ Section : {section}
 - Separated by hyphen without exception
 - Make sure whatever happens this structure is followed
 
-### 2. Meta Description
+### 2. Meta Description (This is only for meta description)
 **Purpose**: Search engine snippet description
 **Requirements**:
 - Length: 120-140 characters (strict)
@@ -181,7 +181,8 @@ Section : {section}
 - Must be specific, engaging, and non-generic
 - Attract users with relevant information
 
-### 3. Hero Title (Tagline)
+H1 content and header is not same as Hero Title and Hero Text
+### 3. Hero Title (Tagline) (This is only for hero title)
 **Purpose**: Main headline that captures visitor attention
 **Requirements**:
 - Length: 30-70 characters (strict)
@@ -192,7 +193,7 @@ Section : {section}
 - **Avoid**: Generic or bland phrases
 - If tagline provided in business info, use exactly as given
 
-### 4. Hero Text
+### 4. Hero Text (This is only for hero text)
 **Purpose**: Supporting text for unique selling proposition
 **Requirements**:
 - Length: 80-100 characters (strict)
@@ -206,7 +207,7 @@ Section : {section}
 
 ## Section Content Structure
 
-### 5. H2 Heading 1 + Content
+### 5. H2  Heading 1 + Content (This is only for h2 heading and content)
 **H2 Requirements**:
 - Length: 50-70 characters
 - **Exclude**: Business name
@@ -225,7 +226,7 @@ Section : {section}
 - Emphasize unique selling points
 - Cover ALL page content without repetition
 
-### 6. H2 Heading 2 + Content
+### 6. H2 Heading 2 + Content (This is only for h2 heading number 2 and content)
 **H2 Requirements**:
 - Length: 50-70 characters
 - **Exclude**: Business name
@@ -239,14 +240,17 @@ Section : {section}
 - Unique, non-repetitive headings
 - **Avoid**: Generic terms like "Why Choose Us?"
 
-### 7. Leading Sentence
+
+
+
+### 7. Leading Sentence (This is only for leading sentence)
 **Purpose**: Attention-grabbing opener for subsections
 **Requirements**:
 - Length: 150+ characters (strict)
 - Hook readers to continue reading
 - **Exclude**: Button CTA repetition
 
-### 8. Call-to-Action Button
+### 8. Call-to-Action Button (This is only for  call to action button)
 **Purpose**: Drive user engagement to other pages
 **Requirements**:
 - Length: 2-3 words
@@ -255,8 +259,8 @@ Section : {section}
 - **Exclude**: "Contact Us," "Learn More," exact page names
 - Reference existing website pages
 - Examples: "Get In Touch," "Schedule Consultation," "Start Conversation"
-
-### 9. Image Recommendations
+ 
+### 9. Image Recommendations (This is only for image recommendation
 **Purpose**: Visual content suggestions for page and marketing
 **Requirements**:
 - Minimum: 5 recommendations
@@ -349,6 +353,42 @@ If the query does not violate any guideline then return score 1 and you can retu
 
 Now if score is 0 then suggest them queires which wont violate the guidelines. In the reason section first tell why is it wrong and then tell the suggested queries which wont violate the system.
 The query: " {query} " should not violate the specific section : " {section} "
+
+Make sure you need to verify h2 section with only h2 . hero only with hero h1 only with h1 . Dont mix them up and confuse yourself
+
+## Content Guidelines
+
+### Language & Style
+- Use 10th-grade US English
+- **Minimize**: "unveil," "explore," "elevate," "discover"
+- **Avoid**: "Welcome" in content
+- No word repeated more than twice
+- Maintain readability and engagement
+
+### SEO Integration
+- Naturally integrate primary and secondary keywords
+- Maintain keyword density without over-optimization
+- Ensure readability while including keywords
+
+### Consistency Rules
+- Use exact business name throughout
+- Maintain consistent location references
+- Follow provided Points of View (POV)
+- Stick to source information without fabrication
+
+### Section Variety
+Create unique headings covering:
+- Innovation and design capabilities
+- Value delivery and specific services
+- Quality control and inspection processes
+- Environmental compliance
+- Collaborative efforts and expertise
+- Personalized approaches
+- Specialized knowledge areas
+
+Only these are general content guidelines apart from that everything depends upon the section also H1 content and header is not same as Hero Title and Hero Text
+Currently there is no guideline for H1 section so skip that if secion is H1
+here is the section {section}
 """
 
 
