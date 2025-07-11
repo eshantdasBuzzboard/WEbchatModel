@@ -18,11 +18,14 @@ logging.basicConfig(level=logging.INFO)
 
 app = FastAPI()
 
-
 template_path = os.path.join(
     os.path.dirname(os.path.dirname(__file__)), "app", "templates"
 )
 templates = Jinja2Templates(directory=template_path)
+
+# Mount static files
+static_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "app", "static")
+app.mount("/static", StaticFiles(directory=static_path), name="static")
 
 # Include routers
 app.include_router(home.router)
