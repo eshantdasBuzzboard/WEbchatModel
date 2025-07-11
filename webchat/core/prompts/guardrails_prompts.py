@@ -135,7 +135,8 @@ Please don't generate anything new — just check if any input fields are missin
 Ensure nothing from the input source content is left out in the final webpage.
 Please change the H2 title but make sure the content stays the same as the original.
 </few shot examples for exception>
-
+If user asks to do a typo check or grammar check and fix those issues then it should be allowed and score should be 1.
+But changing and generating anython on its own wont work.
 
 If score is 0 then make sure to return the suggested things they can ask from the exception context.
 Make sure while giving the reason you remember to say since the copyright of this page is "no" and then ........ (you add the reason which you analysed.)
@@ -166,6 +167,7 @@ Section : {section}
 - Format: [primary_keyword] - [business_name]
 - Must include exact primary keyword and business name
 - Separated by hyphen without exception
+- Make sure whatever happens this structure is followed
 
 ### 2. Meta Description
 **Purpose**: Search engine snippet description
@@ -324,6 +326,8 @@ and score 1 should be returned
 
 Change the way it is starting. Make it more catchy
 Queries like this also should be allowed and score should be 1
+
+If user asks to do a typo check or grammar check and fix those issues then it should be allowed and score should be 1.
 </guidelines>
 After going through all this make sure the query does not violate any guideline for {section}
 Go through all the guidelines very properly and do not miss even a single one

@@ -20,7 +20,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler("log.log", encoding="utf-8"),
+        logging.FileHandler("log.log", mode="w", encoding="utf-8"),
         logging.StreamHandler(),
     ],
 )
