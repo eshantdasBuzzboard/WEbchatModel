@@ -233,6 +233,9 @@ Create unique headings covering:
 - [ ] Images relevant and marketable
 - [ ] Overall flow and readability maintained
 
+
+Finally make sure if user asks to generate a new Hero CTA or change Hero CTA the you dont change the structure of the string
+It should be the catchy string of Hero CTA followed up by brackets (). This is a must.
 </guidelines>
 
 Make sure these guidelines are strictly followed before you generate anything

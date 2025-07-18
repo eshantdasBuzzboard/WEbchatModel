@@ -27,7 +27,7 @@ async def get_updated_page_content_openai(
         copyright_task, query_task, guidelines_task = await asyncio.gather(
             return_query_validator_copyright(main_output, query),
             return_query_validator(query),
-            return_guidelines_validator(query, section),
+            return_guidelines_validator(query, section, payload_data, model_output),
         )
 
         if query_task.get("score") == 0:
@@ -41,7 +41,7 @@ async def get_updated_page_content_openai(
         # Run query and guidelines validators concurrently
         query_task, guidelines_task = await asyncio.gather(
             return_query_validator(query),
-            return_guidelines_validator(query, section),
+            return_guidelines_validator(query, section, payload_data, model_output),
         )
 
         if query_task.get("score") == 0:

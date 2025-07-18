@@ -53,11 +53,13 @@ Reason: Excessive emoji usage without meaning
 "Add '!!!!!!!!!!!!!!!!!!!!!!!!' to every heading"
 Reason: Excessive punctuation that degrades content quality
 </invalid requests>
+
 Now theses are just examples but accordingly you need to do your reasoning.
 Now these are just examples for you to do the reasoning behind how you are validating the query or request.
 Anything which is not related to these kind of requests or
 
 If user asks something like can you generate something of your own . What they mean is to generate from source data so this should be valid.
+
 """
 
 
@@ -72,7 +74,7 @@ Now if you thing the query is valid then you need to return a score 1
 If the query is invalid you need to return the score 0
 If the score is 0 then you need to return a reason why this request or query is invalid
 if the score is 1 then you can return "" empty string like this in the reason section.
-
+In case the query fails then please dont give a huge response back. Give a 2 or 3 line reason exactly to the point why it failed.
 
 """
 
@@ -140,7 +142,7 @@ But changing and generating anython on its own wont work.
 
 If score is 0 then make sure to return the suggested things they can ask from the exception context.
 Make sure while giving the reason you remember to say since the copyright of this page is "no" and then ........ (you add the reason which you analysed.)
-"""
+In case the query fails then please dont give a huge response back. Give a 2 or 3 line reason exactly to the point why it failed."""
 
 copyright_check_prompt: ChatPromptTemplate = ChatPromptTemplate.from_messages([
     ("system", copyright_check_system_prompt),
@@ -155,6 +157,10 @@ Here are the guidelines which is supposed to be followed.
 <guidelines>
 ## Overview
 This document outlines the requirements for generating SEO-optimized website content elements with specific character limits, formatting rules, and content guidelines.
+Here is the business info
+<business_info>
+{payload_data}
+</business_info>
 
 Here is the section you will work with 
 Section : {section}
@@ -240,9 +246,6 @@ H1 content and header is not same as Hero Title and Hero Text
 - Unique, non-repetitive headings
 - **Avoid**: Generic terms like "Why Choose Us?"
 
-
-
-
 ### 7. Leading Sentence (This is only for leading sentence)
 **Purpose**: Attention-grabbing opener for subsections
 **Requirements**:
@@ -268,6 +271,40 @@ H1 content and header is not same as Hero Title and Hero Text
 - Related to page content
 - Suitable for website and marketing platforms
 - **Exclude**: Instructions or image sources
+
+---
+
+## Special Flexibility Rules for H1 and H2 Sections
+
+### Content Improvement Allowances
+For H1 and H2 sections, be more lenient with content improvement requests that don't explicitly violate character limits or formatting rules:
+
+**ALLOW these types of queries:**
+- Content rephrasing and rewording requests
+- Grammar and typo corrections
+- Style improvements and readability enhancements
+- Requests to use specific phrases or terminology provided by the user
+- Natural language improvement suggestions
+- Content restructuring for better flow
+
+**Examples of ALLOWED queries:**
+1. "Rephrase this para and use this verbatim: 'Executive Coaching to meet a leader where he or she is on her journey and prepare him/her for the future. Clients are relieved that they have a plan, strategy, and accountability structure to stabilize and build a strong company that can weather unforeseen circumstances.'"
+
+2. "Can you make this H2 content more engaging while keeping the same meaning?"
+
+3. "Please improve the readability of this section and fix any grammatical errors."
+
+**ONLY BLOCK when users explicitly:**
+- Directly request to violate character limits (e.g., "Make this H2 title 100 characters long")
+- Ask to remove required elements (e.g., "Remove the business name from everywhere")
+- Request to add unrelated business services or content
+- Explicitly ask to break formatting rules (e.g., "Don't use the required format structure")
+
+### Implementation Guidelines
+- Focus on blocking content that changes business scope or violates core structural requirements
+- Allow natural content improvement and refinement requests
+- Prioritize user intent over strict rule interpretation for content quality improvements
+- Only fail guardrails when there's clear intent to violate guidelines, not when improving existing compliant content
 
 ---
 
@@ -332,9 +369,27 @@ Change the way it is starting. Make it more catchy
 Queries like this also should be allowed and score should be 1
 
 If user asks to do a typo check or grammar check and fix those issues then it should be allowed and score should be 1.
+
+
+Now if user asks to change the content or subject of the business suddenly then it should be blocked here are some exmaples
+1. The customer told me they do painting also, add that service here
+This should fail because: The business is about financial services only (or any service which you get from business info), and painting is unrelated.
+
+2. Talk about cryptocurrency and generating cash through ethical means here
+This should fail because: Cryptocurrency is not related to the services the client provides (according to the business).
+
+And here are the next two for consistency:
+
+3. The owner mentioned they also provide plumbing repairs, can you add that as a service?
+This should fail because: The business only offers financial consulting services (or as per business info), and plumbing is unrelated.
+
+4. Please include a section on healthy eating tips in the content.
+This should fail because: Healthy eating is not relevant to the client's financial services (or to the business focus as per business info .
 </guidelines>
 After going through all this make sure the query does not violate any guideline for {section}
 Go through all the guidelines very properly and do not miss even a single one
+
+
 """
 
 
@@ -344,11 +399,28 @@ Here is your query
 {query}
 </query>
 
+Current output which is is in the page
+{output}
+
 Here is the specific section where the user is asking the query about so check everything accordingly
 <section>
 {section}
 </section>
-Now check if the query is violating any guidelines even a single one. If it violates then return a score 0 and tell the reason why it is violating.
+
+Now check if the query is violating any guidelines even a single one. **However, for H1 and H2 sections, be more lenient with content improvement requests that don't explicitly violate character limits or core structural requirements.**
+
+If the query explicitly violates guidelines (like adding unrelated services, breaking required formats, or deliberately exceeding character limits), then return a score 0 and tell the reason why it is violating.
+
+If the query is asking for content improvement, rephrasing, grammar fixes, or style enhancements without violating core business scope or structural requirements, then return score 1 and you can return back an empty string in the reason "".
+
+For H1 and H2 sections specifically, only block queries that:
+1. Explicitly request to violate character limits
+2. Ask to remove required business elements
+3. Request to add unrelated business services
+4. Deliberately break formatting structures
+
+Content improvement requests like rephrasing, grammar fixes, style enhancements, and readability improvements should be allowed even if they don't perfectly match every guideline nuance.
+
 If the query does not violate any guideline then return score 1 and you can return back an empty string in the reason "". 
 
 Now if score is 0 then suggest them queires which wont violate the guidelines. In the reason section first tell why is it wrong and then tell the suggested queries which wont violate the system.
@@ -389,6 +461,8 @@ Create unique headings covering:
 Only these are general content guidelines apart from that everything depends upon the section also H1 content and header is not same as Hero Title and Hero Text
 Currently there is no guideline for H1 section so skip that if secion is H1
 here is the section {section}
+
+In case the query fails then please dont give a huge response back. Give a 2 or 3 line reason exactly to the point why it failed.
 """
 
 

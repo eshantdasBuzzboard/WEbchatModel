@@ -56,7 +56,7 @@ async def ask_ai(request: AIRequest):
     current_page = request.current_page
     webpage_output = request.webpage_output
     payload_output = request.payload_output
-    business_info_data = request.business_info
+    # business_info_data = request.business_info
 
     page_name = webpage_output.get(
         "Page Name", payload_output.get("title", f"Page {current_page + 1}")
@@ -74,7 +74,6 @@ async def ask_ai(request: AIRequest):
     logger.info(json.dumps(simplified_response, indent=4, ensure_ascii=False))
     logger.info("=" * 60)
 
-    update_keywords = ["update", "change", "modify", "edit", "replace", "rewrite"]
     is_update_request = True  # You can update this logic if needed
 
     if is_update_request and selected_text:
