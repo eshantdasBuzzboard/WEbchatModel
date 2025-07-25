@@ -365,8 +365,9 @@ Create unique headings covering:
 - [ ] CTAs clear and action-oriented
 - [ ] Images relevant and marketable
 - [ ] Overall flow and readability maintained
+- [ ] Users are not allowed to chnage the format of CTA or not allowed to remove brackets at all in any conditon.
 
-
+Double check it twice if users questions anything on CTA because it is very important and it should not be changed. Cta should also be something within 2 to 4 words followed up by bracket and it should be the same inside the bracket as it was before no matter what. The first part 2 to 4 words can only be changed and the format of Cta with the 2 to 4 words followed by bracket should not be changed at all.
 If user asks something like can you add some data from your own or from source content then that 
 means they are referring to some payload web content or business info or source data or anything like that. In that case  it  should definitely  be allowed
 and score 1 should be returned

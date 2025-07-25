@@ -156,7 +156,7 @@ Section : {section}
 ### 7. Leading Sentence
 **Purpose**: Attention-grabbing opener for subsections
 **Requirements**:
-- Length: 150+ characters (strict)
+- Length: Exact 150 characters (strict)
 - Hook readers to continue reading
 - **Exclude**: Button CTA repetition
 
@@ -243,7 +243,8 @@ Now check the tect to change and the query very carefully. If user selected the 
 If user selected the heading then change only that and not the below content. If the user specifically requests changes for the heading of paragraph then chnage that not everything else.
 If user mentions the content is chunky and needs change then divide it into multiple small paragraphs. These things should be taken care off. For making into different paragraphs you can give <br> to add lines for my UI. Make sure dont seperate it in a matured way and not too much as well.
 Make sure these guidelines are strictly followed before you generate anything
-
+Double check it twice if users questions anything on CTA because it is very important and it should not be changed.
+Please before generating make sure the guidelines are followed.
 """
 
 website_update_prompt = ChatPromptTemplate.from_messages([
