@@ -12,7 +12,7 @@ from typing import Any
 from dotenv import load_dotenv
 
 load_dotenv()
-
+a = 2
 llm = ChatOpenAI(model="gpt-4.1", temperature=0, use_responses_api=True, max_retries=3)
 
 
