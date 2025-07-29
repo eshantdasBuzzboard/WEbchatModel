@@ -32,7 +32,9 @@ async def return_query_validator_copyright(current_output, query) -> Any:
     return json.loads(result.model_dump_json())
 
 
-async def return_guidelines_validator(query, section, payload_data, output) -> Any:
+async def return_guidelines_validator(
+    query, section, payload_data, output, all_pages_names
+) -> Any:
     llm_structured = llm.with_structured_output(QueryValidator)
     query_validator_chain = guidelines_guardrails_prompt | llm_structured
     input_data = {
@@ -40,6 +42,7 @@ async def return_guidelines_validator(query, section, payload_data, output) -> A
         "section": section,
         "payload_data": payload_data,
         "output": output,
+        "all_pages_names": all_pages_names,
     }
     result = await query_validator_chain.ainvoke(input_data)
     return json.loads(result.model_dump_json())

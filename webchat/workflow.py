@@ -14,7 +14,13 @@ import asyncio
 
 
 async def get_updated_page_content_openai(
-    payload_data, model_output, page_name, query, text_to_change, section
+    payload_data,
+    model_output,
+    page_name,
+    query,
+    text_to_change,
+    section,
+    all_pages_names,
 ):
     # Step 1: Extract relevant page info
     main_output, left_panel, if_copyright, business_info = await extract_key_info(
@@ -27,7 +33,9 @@ async def get_updated_page_content_openai(
         copyright_task, query_task, guidelines_task = await asyncio.gather(
             return_query_validator_copyright(main_output, query),
             return_query_validator(query),
-            return_guidelines_validator(query, section, payload_data, model_output),
+            return_guidelines_validator(
+                query, section, payload_data, model_output, all_pages_names
+            ),
         )
 
         if query_task.get("score") == 0:
@@ -41,7 +49,9 @@ async def get_updated_page_content_openai(
         # Run query and guidelines validators concurrently
         query_task, guidelines_task = await asyncio.gather(
             return_query_validator(query),
-            return_guidelines_validator(query, section, payload_data, model_output),
+            return_guidelines_validator(
+                query, section, payload_data, model_output, all_pages_names
+            ),
         )
 
         if query_task.get("score") == 0:
@@ -58,6 +68,7 @@ async def get_updated_page_content_openai(
         page_name,
         text_to_change,
         section,
+        all_pages_names,
     )
     cleaned_content = remove_none_values(updated_content)
     final_response = update_page_content(model_output, cleaned_content)

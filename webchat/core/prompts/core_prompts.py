@@ -233,9 +233,13 @@ Create unique headings covering:
 - [ ] Images relevant and marketable
 - [ ] Overall flow and readability maintained
 
-
+<very_important_for_cta>
 Finally make sure if user asks to generate a new Hero CTA or change Hero CTA the you dont change the structure of the string
 It should be the catchy string of Hero CTA followed up by brackets (). This is a must.
+Here are all the pages name
+{all_pages_names}
+Within the brackets add the page name which user asked from this list.
+</very_important_for_cta>
 </guidelines>
 
 
@@ -243,7 +247,7 @@ Now check the tect to change and the query very carefully. If user selected the 
 If user selected the heading then change only that and not the below content. If the user specifically requests changes for the heading of paragraph then chnage that not everything else.
 If user mentions the content is chunky and needs change then divide it into multiple small paragraphs. These things should be taken care off. For making into different paragraphs you can give <br> to add lines for my UI. Make sure dont seperate it in a matured way and not too much as well.
 Make sure these guidelines are strictly followed before you generate anything
-Double check it twice if users questions anything on CTA because it is very important and it should not be changed.
+Double check it twice if users questions anything on CTA because it is very important and it should not be changed. Cta should also be something within 2 to 4 words followed up by bracket and it should be the same inside the bracket as it was before no matter what. The first part 2 to 4 words can only be changed and the format of Cta with the 2 to 4 words followed by bracket should not be changed at all.
 Please before generating make sure the guidelines are followed.
 """
 

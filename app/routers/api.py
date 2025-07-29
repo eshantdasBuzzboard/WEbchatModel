@@ -31,6 +31,18 @@ class AIRequest(BaseModel):
     business_info: dict
 
 
+def get_page_titles_flexible(combined_data, element_index):
+    """Extract page titles/names from either data structure"""
+    if element_index < len(combined_data):
+        pages = combined_data[element_index]["pages"]
+        # Try both possible keys
+        if pages and "title" in pages[0]:
+            return [page["title"] for page in pages]
+        elif pages and "Page Name" in pages[0]:
+            return [page["Page Name"] for page in pages]
+    return []
+
+
 @router.get("/data/{set_number}")
 async def get_data(set_number: int):
     if set_number < 1 or set_number > 3:
@@ -78,6 +90,7 @@ async def ask_ai(request: AIRequest):
 
     if is_update_request and selected_text:
         try:
+            all_pages_names = get_page_titles_flexible(combined_data, current_set - 1)
             payload_output = combined_data[current_set - 1]
             webpage_output_for_api = webpage_content_output_test_data[current_set - 1]
 
@@ -96,6 +109,7 @@ async def ask_ai(request: AIRequest):
                 user_question,
                 selected_text_fixed,
                 content_section,
+                all_pages_names,
             )
 
             logger.info("=" * 60)
