@@ -182,6 +182,7 @@ Section: {section}
 - Must include exact primary keyword and business name
 - Separated by hyphen without exception
 - This structure CANNOT be changed under any circumstances
+- Meta title should always be in "title case"
 
 **STRICT RULE**: If user asks to change or rephrase the meta title format, it MUST be blocked because it needs to follow [primary_keyword] - [business_name] format exactly.
 
@@ -252,6 +253,7 @@ Section: {section}
 **Requirements**:
 - Length: 150+ characters (strict)
 - Hook readers to continue reading
+- End with 2-word active CTA in sentence case
 - **EXCLUDE**: Button CTA repetition
 
 ### 8. Call-to-Action Button (This is only for call to action button)
@@ -301,6 +303,7 @@ Here are all the pages names: {all_pages_names}
 8. "Make meta description 200 characters"
 9. "Remove character limits"
 10. "Don't follow the [primary_keyword] - [business_name] structure"
+11. If POV is in singular then it should remain in singular. If POV is plural then it should remain in Plural. IF user asks to change that then please flag it out.
 
 ### CTA Redirection Violations (Score 0):
 1. "Make CTA redirect to this same page"
@@ -506,6 +509,7 @@ Available pages for redirection:
    - Target page exists in available pages list
 4. **Evaluate Intent**: Distinguish between improvement vs. rule-breaking
 5. **Special H1/H2 Leniency**: Apply flexible rules for content sections
+If POV is in singular then it should remain in singular. If POV is plural then it should remain in Plural. IF user asks to change that then please flag it out.
 
 ## RESPONSE FORMAT:
 
@@ -533,6 +537,7 @@ Forbidden redirections: {section}, home, homepage
 Valid redirections: Any page from available_pages list except {section} and home/homepage
 
 The query "{query}" must be evaluated against section "{section}" requirements only.
+Cross check all the things I have mentioned above thoroughly and then return me your response.
 """
 guidelines_guardrails_prompt = ChatPromptTemplate.from_messages([
     ("system", guidelines_guardrails_system_prompt),

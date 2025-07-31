@@ -33,3 +33,11 @@ class Page(BaseModel):
     Image_Recommendations: List[str] = Field(
         default=None, alias="Image Recommendations"
     )
+
+
+class SectionUpdateOnly(BaseModel):
+    updated_text: str = Field(..., description="the updated complete section.")
+    index: int = Field(
+        default=None, description="The index only if they asked to update h2 content"
+    )
+    section: str = Field(..., description="The section name which is getting updated")

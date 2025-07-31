@@ -14,18 +14,15 @@ This is about the left panel information.
 You need to highly focus on the query requested by the user and based on that you need to update the 
 current website page output. So you will also be given the current website output and based on that you need to update it
 in whatever the user is requesting in his or her query and you need to update it accordingly pretty well.
-Just update the section or sections they are mentioning about and return the other key value of the output as it is.
-Make sure you return the output in the same json structure in which you are being given in the input and there is no change there.
+Just update the section which they are mentioning about and return the exact section name you get from curent_output, updated_string for that and only specific to that section. The complete updated string for that section. If user asks to change only a small part than change it in. way the other text and the new text are coherent and if the whole section is changed then return the complete new string.
+Basically in either case you need to return a completely new updated string with or without old context for that section based on the query what user asks. Also if user asks to update h2 section return the index of which h2. For example if its the first h2 content then its 0th index.
 So now all you need to do is highly focus on the query which the user sends and generate or update or remove or add
 the section of the website content which the user is asking considering the "business information" and the "left panel information".
 You need to just keep those info in your mind and based on that you need to generate . Highly focus on the content section of the left panel information if it is not null.
-
 """
 
 
 website_update_content_user_prompt = """
-
-
 We are now updating the {page_name} page. 
 Here is your business info 
 <business_info>
@@ -37,7 +34,7 @@ Here is your left panel info
 {left_panel_info}
 <left_panel_info>
 
-Here is the output of the website page which you need to update and return in the same json structure 
+Here is the output of the website page which you need to see very carefully and update only the section which is mentioned.
 as it is
 <current_output>
 {current_output}
@@ -61,8 +58,6 @@ Here is the main query which you need to focus on and based on that update the s
 </query>
 
 
-
-Make sure you return in the same structure as the current output.
 Before Generating make sure you follow all these guidelines precisely
 
 The guidelines below are very important and strict.
@@ -82,6 +77,7 @@ Section : {section}
 - Must include exact primary keyword and business name
 - Separated by hyphen without exception
 - Make sure whatever happens this structure is followed
+- Meta title should always be in "title case"
 
 ### 2. Meta Description
 **Purpose**: Search engine snippet description
@@ -157,6 +153,7 @@ Section : {section}
 **Purpose**: Attention-grabbing opener for subsections
 **Requirements**:
 - Length: Exact 150 characters (strict)
+- End with 2-word active CTA in sentence case
 - Hook readers to continue reading
 - **Exclude**: Button CTA repetition
 
@@ -249,6 +246,10 @@ If user mentions the content is chunky and needs change then divide it into mult
 Make sure these guidelines are strictly followed before you generate anything
 Double check it twice if users questions anything on CTA because it is very important and it should not be changed. Cta should also be something within 2 to 4 words followed up by bracket and it should be the same inside the bracket as it was before no matter what. The first part 2 to 4 words can only be changed and the format of Cta with the 2 to 4 words followed by bracket should not be changed at all.
 Please before generating make sure the guidelines are followed.
+
+Just update the section which they are mentioning about and return the exact section name you get from curent_output, updated_string for that and only specific to that section. The complete updated string for that section. If user asks to change only a small part than change it in. way the other text and the new text are coherent and if the whole section is changed then return the complete new string.
+Basically in either case you need to return a completely new updated string with or without old context for that section based on the query what user asks. Also if user asks to update h2 section return the index of which h2. For example if its the first h2 content then its 0th index.
+Crosscheck thoroughy not to miss out following any guidelines and be very sure to maintain the same tone and voice in your reponse which you will be generating.
 """
 
 website_update_prompt = ChatPromptTemplate.from_messages([
