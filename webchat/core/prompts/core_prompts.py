@@ -59,7 +59,13 @@ Here is the main query which you need to focus on and based on that update the s
 
 
 Before Generating make sure you follow all these guidelines precisely
-
+First check the banned words and phrases
+Now here are banned words and phrases which you are not supposed to use at all while generating. This needs to be strictly followed
+<banned_words_and_phrases>
+//Strictly make sure the content is free from the below awkward phrases and Words:
+                              Phrases: "running condition", "pour out your heart", "spoiled for choice", "Let the curiosity kick in", "has been acknowledged by our customers", "Do recollect", "Do _____", "With an experience", "Thinking of shifting?", "Commenced our voyage", "[Artist] is coming live", "Ensure to", "experience holder", "baseball park", "afford us another opportunity", "your anticipations"
+                              Words: "top-notch", "Endows", "Swift", "Pleasurable", "Pleasure", "Avail", "Outlook", "Top-most", "topmost", "Top-tier", "Resplendent", "Ardent", "Homely", "Stride", "Supremacy", "Endeavor", "Unarguably", "Fantasies", "Apt", "Vigorous", "Revel", "Ever-Ready", "Accomplice", "Abounding", "Revelation", "Escapade". Instead of these words use "unmatched" or "unparalleled".
+</banned_words_and_phrases>
 The guidelines below are very important and strict.
 <guidelines>
 ## Overview
@@ -250,6 +256,7 @@ Please before generating make sure the guidelines are followed.
 Just update the section which they are mentioning about and return the exact section name you get from curent_output, updated_string for that and only specific to that section. The complete updated string for that section. If user asks to change only a small part than change it in. way the other text and the new text are coherent and if the whole section is changed then return the complete new string.
 Basically in either case you need to return a completely new updated string with or without old context for that section based on the query what user asks. Also if user asks to update h2 section return the index of which h2. For example if its the first h2 content then its 0th index.
 Crosscheck thoroughy not to miss out following any guidelines and be very sure to maintain the same tone and voice in your reponse which you will be generating.
+Make sure whatever you will generate will go to front end so for paragraphs add <br> if you are adding bullet points make sure every bullet point is start from a new line and the format does nor break in the UI. Based on that generate it.
 """
 
 website_update_prompt = ChatPromptTemplate.from_messages([
