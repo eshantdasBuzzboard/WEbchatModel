@@ -280,7 +280,7 @@ Here are all the pages names: {all_pages_names}
 - **MUST redirect to different valid pages**: Can only redirect to other existing pages from the available pages list
 - **Example violations**: If current section is "Services", CTA cannot say "View Services [Services]" or "Go Home [Home]"
 - **Valid redirections**: Can only redirect to pages that are NOT the current section and NOT the home page
-
+If user says please use cta for contact or any page then they mean redirect to contact page so dont be too strict. Check properly if they are specifically violoting only
 ### 9. Image Recommendations (This is only for image recommendation)
 **Purpose**: Visual content suggestions for page and marketing
 **Requirements**:
@@ -535,7 +535,7 @@ If POV is in singular then it should remain in singular. If POV is plural then i
 Current section: {section}
 Forbidden redirections: {section}, home, homepage
 Valid redirections: Any page from available_pages list except {section} and home/homepage
-
+Check properly if they are specifically violoting only. Dont be way too strict.
 The query "{query}" must be evaluated against section "{section}" requirements only.
 Cross check all the things I have mentioned above thoroughly and then return me your response.
 """

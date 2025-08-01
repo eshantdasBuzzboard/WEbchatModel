@@ -245,7 +245,7 @@ Within the brackets add the page name which user asked from this list.
 </very_important_for_cta>
 </guidelines>
 
-
+If user says please use cta for contact or any page then they mean redirect to contact page
 Now check the tect to change and the query very carefully. If user selected the first sentence change only that.
 If user selected the heading then change only that and not the below content. If the user specifically requests changes for the heading of paragraph then chnage that not everything else.
 If user mentions the content is chunky and needs change then divide it into multiple small paragraphs. These things should be taken care off. For making into different paragraphs you can give <br> to add lines for my UI. Make sure dont seperate it in a matured way and not too much as well.
