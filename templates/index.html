@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -72,9 +73,9 @@
         </div>
     </div>
 
-    <!-- Ask AI Modal -->
+    <!-- Enhanced Ask AI Modal -->
     <div id="askAIModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content enhanced-modal">
             <div class="modal-header">
                 <h3>Ask Zylo</h3>
                 <span class="close" id="closeAIModal">&times;</span>
@@ -85,15 +86,110 @@
                     <div id="selectedTextDisplay" class="selected-text-display"></div>
                 </div>
                 
+                <!-- Action Selection Section -->
                 <div class="ai-modal-section">
-                    <h4>Your Question:</h4>
-                    <textarea id="userQuestion" placeholder="Ask anything about the selected content..." rows="4"></textarea>
+                    <h4>Content Actions</h4>
+                    <div class="action-selector">
+                        <!-- Professional Action Cards -->
+                        <div class="action-cards-grid">
+                            <!-- Regenerate Card -->
+                            <div class="action-card" data-category="regenerate">
+                                <div class="card-header">
+                                    <div class="card-icon regenerate-icon">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>
+                                        </svg>
+                                    </div>
+                                    <div class="card-title">
+                                        <h5>Regenerate</h5>
+                                        <p>Enhance content quality and style</p>
+                                    </div>
+                                </div>
+                                <div class="card-actions">
+                                    <button class="action-option-btn" data-action="rewrite-clarity">
+                                        <span class="option-icon">◦</span>
+                                        Rewrite for clarity
+                                    </button>
+                                    <button class="action-option-btn" data-action="simplify-language">
+                                        <span class="option-icon">◦</span>
+                                        Simplify the language
+                                    </button>
+                                    <button class="action-option-btn" data-action="make-human">
+                                        <span class="option-icon">◦</span>
+                                        Make it human-like
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Optimize Card -->
+                            <div class="action-card" data-category="optimize">
+                                <div class="card-header">
+                                    <div class="card-icon optimize-icon">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                                        </svg>
+                                    </div>
+                                    <div class="card-title">
+                                        <h5>Optimize</h5>
+                                        <p>Structure and format improvements</p>
+                                    </div>
+                                </div>
+                                <div class="card-actions">
+                                    <button class="action-option-btn" data-action="bullet-points">
+                                        <span class="option-icon">◦</span>
+                                       Turn to bullet points
+                                    </button>
+                                    <button class="action-option-btn" data-action="smaller-paragraphs">
+                                        <span class="option-icon">◦</span>
+                                        Convert to smaller paragraphs
+                                    </button>
+                                    <button class="action-option-btn" data-action="shorten">
+                                        <span class="option-icon">◦</span>
+                                        Shorten it
+                                    </button>
+                                    <button class="action-option-btn" data-action="fix-grammar">
+                                        <span class="option-icon">◦</span>
+                                       Fix grammar & punctuation
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Custom Question Section -->
+                        <div class="custom-question-section">
+                            <div class="section-divider">
+                                <div class="divider-line"></div>
+                                <span class="divider-text">Custom Request</span>
+                                <div class="divider-line"></div>
+                            </div>
+                            <div class="question-input-container">
+                                <label for="userQuestion">Enter your specific request:</label>
+                                <textarea id="userQuestion" placeholder="Describe how you'd like to modify the selected content..." rows="4" disabled></textarea>
+                                <div class="input-helper-text">Select text and choose an action above, or type a custom request here</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Selected Action Display -->
+                <div id="selectedActionDisplay" class="selected-action-display" style="display: none;">
+                    <div class="selected-action-content">
+                        <span class="selected-action-label">Selected Action:</span>
+                        <span id="selectedActionText" class="selected-action-text"></span>
+                        <button id="clearAction" class="clear-action-btn">×</button>
+                    </div>
                 </div>
                 
                 <div class="ai-modal-actions">
-                    <button id="sendAIQuestion" class="ai-send-btn">
-                        <span class="send-icon">🚀</span>
-                        Send Question
+                    <button id="sendAIQuestion" class="ai-send-btn professional-send-btn">
+                        <div class="send-btn-content">
+                            <span class="send-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                                </svg>
+                            </span>
+                            <span id="sendButtonText">Send Request</span>
+                        </div>
                     </button>
                 </div>
                 
@@ -157,10 +253,14 @@
         const selectedTextDisplay = document.getElementById('selectedTextDisplay');
         const userQuestion = document.getElementById('userQuestion');
         const sendAIQuestion = document.getElementById('sendAIQuestion');
+        const sendButtonText = document.getElementById('sendButtonText');
         const loadingSpinner = document.getElementById('loadingSpinner');
         const aiResponse = document.getElementById('aiResponse');
         const aiResponseContent = document.getElementById('aiResponseContent');
         const successToast = document.getElementById('successToast');
+        const selectedActionDisplay = document.getElementById('selectedActionDisplay');
+        const selectedActionText = document.getElementById('selectedActionText');
+        const clearAction = document.getElementById('clearAction');
 
         // Current state
         let currentSet = 1;
@@ -169,6 +269,83 @@
         let currentWebpageData = {};
         let currentPayloadData = {};
         let currentBusinessData = {};
+        let selectedAction = null;
+
+        // Action definitions
+        const actionDefinitions = {
+            'rewrite-clarity': 'Rewrite for clarity',
+            'simplify-language': 'Simplify the language',
+            'make-human': 'Make it human-like',
+            'bullet-points': 'Turn to bullet points',
+            'smaller-paragraphs': 'Convert to smaller paragraphs',
+            'shorten': 'Shorten it',
+            'fix-grammar': 'Fix grammar & punctuation'
+        };
+
+        // Enhanced Action Button Functionality
+        document.addEventListener('DOMContentLoaded', () => {
+            // Action option button handlers
+            document.querySelectorAll('.action-option-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const action = btn.dataset.action;
+                    
+                    // Clear previous selections
+                    document.querySelectorAll('.action-option-btn').forEach(b => b.classList.remove('selected'));
+                    document.querySelectorAll('.action-card').forEach(card => card.classList.remove('active'));
+                    
+                    // Select current action
+                    btn.classList.add('selected');
+                    btn.closest('.action-card').classList.add('active');
+                    selectedAction = action;
+                    
+                    // Disable and clear custom question
+                    userQuestion.value = '';
+                    userQuestion.disabled = true;
+                    userQuestion.placeholder = 'Action selected - custom input disabled';
+                    
+                    // Show selected action
+                    selectedActionText.textContent = actionDefinitions[action];
+                    selectedActionDisplay.style.display = 'block';
+                    sendButtonText.textContent = 'Apply Action';
+                    
+                    console.log('Selected action:', selectedAction);
+                });
+            });
+
+            // Clear action button
+            clearAction.addEventListener('click', () => {
+                clearSelectedAction();
+            });
+
+            // Enable custom question when user focuses on textarea
+            userQuestion.addEventListener('focus', () => {
+                if (selectedAction) {
+                    clearSelectedAction();
+                }
+            });
+
+            // Clear action when typing in custom question
+            userQuestion.addEventListener('input', () => {
+                if (userQuestion.value.trim() && selectedAction) {
+                    clearSelectedAction();
+                }
+            });
+        });
+
+        function clearSelectedAction() {
+            selectedAction = null;
+            selectedActionDisplay.style.display = 'none';
+            sendButtonText.textContent = 'Send Request';
+            
+            // Clear visual selections
+            document.querySelectorAll('.action-option-btn').forEach(b => b.classList.remove('selected'));
+            document.querySelectorAll('.action-card').forEach(card => card.classList.remove('active'));
+            
+            // Re-enable custom question
+            userQuestion.disabled = false;
+            userQuestion.placeholder = 'Describe how you\'d like to modify the selected content...';
+        }
 
         // Sidebar toggle functionality
         toggleBtn.addEventListener('click', () => {
@@ -197,12 +374,14 @@
             selectedTextDisplay.textContent = selectedText;
             askAIModal.style.display = 'block';
             textSelectionTooltip.style.display = 'none';
+            clearSelectedAction(); // Reset action selection
             userQuestion.focus();
         });
 
         closeAIModal.addEventListener('click', () => {
             askAIModal.style.display = 'none';
             clearSelection();
+            clearSelectedAction();
         });
 
         // Show success toast
@@ -313,10 +492,20 @@
         }
 
         sendAIQuestion.addEventListener('click', async () => {
-            const question = userQuestion.value.trim();
-            if (!question) {
-                alert('Please enter a question!');
-                return;
+            let questionToSend = '';
+            
+            // Determine what to send based on selected action or custom question
+            if (selectedAction) {
+                // Send the action as the question
+                questionToSend = actionDefinitions[selectedAction];
+                console.log('Sending action:', selectedAction, 'as question:', questionToSend);
+            } else {
+                // Send custom question
+                questionToSend = userQuestion.value.trim();
+                if (!questionToSend) {
+                    alert('Please select an action or enter a question!');
+                    return;
+                }
             }
 
             // Show loading state
@@ -325,20 +514,25 @@
             aiResponse.style.display = 'none';
 
             try {
+                const requestBody = {
+                    selected_text: selectedText,
+                    user_question: selectedAction ? '' : questionToSend, // Empty string if action selected
+                    current_set: currentSet,
+                    current_page: currentPageIndex,
+                    webpage_output: currentWebpageData,
+                    payload_output: currentPayloadData,
+                    business_info: currentBusinessData,
+                    action_type: selectedAction || null // Add action type to request
+                };
+
+                console.log('Sending request:', requestBody);
+
                 const response = await fetch('/api/ask-ai', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        selected_text: selectedText,
-                        user_question: question,
-                        current_set: currentSet,
-                        current_page: currentPageIndex,
-                        webpage_output: currentWebpageData,
-                        payload_output: currentPayloadData,
-                        business_info: currentBusinessData
-                    })
+                    body: JSON.stringify(requestBody)
                 });
 
                 const data = await response.json();
@@ -386,6 +580,7 @@
             if (e.target === askAIModal) {
                 askAIModal.style.display = 'none';
                 clearSelection();
+                clearSelectedAction();
             }
         });
 
@@ -826,7 +1021,6 @@
     </script>
 
     <style>
-
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 * {
@@ -849,8 +1043,12 @@
     --gray-600: #4b5563;
     --gray-700: #374151;
     --gray-800: #1f2937;
+    --success-green: #10b981;
+    --warning-orange: #f59e0b;
     --gradient-primary: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
     --gradient-secondary: linear-gradient(135deg, #60a5fa 0%, #93c5fd 100%);
+    --gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    --gradient-warning: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
@@ -999,6 +1197,549 @@ body {
     flex: 1;
     overflow: hidden;
     background: var(--gray-50);
+}
+
+/* Professional Action Cards Styles */
+.action-selector {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+}
+
+.action-cards-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.action-card {
+    background: var(--white);
+    border: 2px solid var(--gray-200);
+    border-radius: 16px;
+    padding: 1.5rem;
+    transition: var(--transition);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.action-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: var(--gray-300);
+    transition: var(--transition);
+}
+
+.action-card:hover {
+    border-color: var(--accent-blue);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.action-card:hover::before {
+    background: var(--gradient-primary);
+}
+
+.action-card.active {
+    border-color: var(--primary-blue);
+    background: linear-gradient(135deg, #fafbff 0%, #f0f4ff 100%);
+    box-shadow: var(--shadow-blue);
+}
+
+.action-card.active::before {
+    background: var(--gradient-primary);
+}
+
+.card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: var(--transition);
+}
+
+.regenerate-icon {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: var(--white);
+}
+
+.optimize-icon {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: var(--white);
+}
+
+.card-title h5 {
+    color: var(--gray-800);
+    font-weight: 700;
+    font-size: 1.125rem;
+    margin: 0 0 0.25rem 0;
+    letter-spacing: -0.025em;
+}
+
+.card-title p {
+    color: var(--gray-600);
+    font-size: 0.875rem;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.card-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.action-option-btn {
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    color: var(--gray-700);
+    padding: 0.875rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.875rem;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-align: left;
+    width: 100%;
+    position: relative;
+}
+
+.action-option-btn:hover {
+    background: var(--light-blue);
+    border-color: var(--accent-blue);
+    color: var(--primary-blue);
+    transform: translateX(4px);
+}
+
+.action-option-btn.selected {
+    background: var(--gradient-primary);
+    border-color: var(--primary-blue);
+    color: var(--white);
+    font-weight: 600;
+    transform: translateX(4px);
+    box-shadow: var(--shadow-md);
+}
+
+.action-option-btn.selected::after {
+    content: '✓';
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-weight: bold;
+    font-size: 1rem;
+}
+
+.option-icon {
+    color: var(--primary-blue);
+    font-weight: bold;
+    font-size: 1rem;
+    flex-shrink: 0;
+    transition: var(--transition);
+}
+
+.action-option-btn.selected .option-icon {
+    color: var(--white);
+}
+
+/* Custom Question Section */
+.custom-question-section {
+    margin-top: 2rem;
+    padding-top: 2rem;
+}
+
+.section-divider {
+    display: flex;
+    align-items: center;
+    margin: 2rem 0;
+    gap: 1rem;
+}
+
+.divider-line {
+    flex: 1;
+    height: 1px;
+    background: var(--gray-300);
+}
+
+.divider-text {
+    background: var(--gray-100);
+    color: var(--gray-600);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border: 1px solid var(--gray-300);
+}
+
+.question-input-container {
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+.question-input-container label {
+    display: block;
+    color: var(--gray-700);
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.question-input-container textarea {
+    width: 100%;
+    padding: 1rem;
+    border: 2px solid var(--gray-200);
+    border-radius: 8px;
+    background: var(--white);
+    color: var(--black);
+    font-family: inherit;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    resize: vertical;
+    min-height: 100px;
+    transition: var(--transition);
+}
+
+.question-input-container textarea:focus:not(:disabled) {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+}
+
+.question-input-container textarea:disabled {
+    background: var(--gray-100);
+    color: var(--gray-500);
+    cursor: not-allowed;
+    border-color: var(--gray-300);
+}
+
+.input-helper-text {
+    margin-top: 0.75rem;
+    color: var(--gray-500);
+    font-size: 0.75rem;
+    font-style: italic;
+    text-align: center;
+}
+
+/* Selected Action Display */
+.selected-action-display {
+    background: var(--gradient-primary);
+    color: var(--white);
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    margin: 1.5rem 0;
+    box-shadow: var(--shadow-blue);
+    animation: slideIn 0.3s ease-out;
+    border: 2px solid var(--primary-blue);
+}
+
+.selected-action-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.selected-action-label {
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    opacity: 0.9;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.selected-action-text {
+    font-weight: 700;
+    font-size: 1rem;
+    flex: 1;
+    letter-spacing: -0.025em;
+}
+
+.clear-action-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: var(--white);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1rem;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.clear-action-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: scale(1.05);
+}
+
+/* Action Selector Styles */
+.action-selector {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 2rem;
+    border: 1px solid var(--gray-200);
+    box-shadow: var(--shadow-md);
+}
+
+.quick-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.action-group {
+    position: relative;
+}
+
+.main-action-btn {
+    width: 100%;
+    background: var(--gradient-primary);
+    color: var(--white);
+    border: none;
+    padding: 1.25rem 1.5rem;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 1rem;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: var(--shadow-md);
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.main-action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-blue);
+}
+
+.main-action-btn.active {
+    background: var(--gradient-success);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.3);
+}
+
+.main-action-btn .action-icon {
+    font-size: 1.25rem;
+}
+
+.main-action-btn .dropdown-arrow {
+    font-size: 0.75rem;
+    transition: var(--transition);
+}
+
+.main-action-btn.active .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+.sub-actions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--white);
+    border: 2px solid var(--gray-200);
+    border-radius: 12px;
+    margin-top: 0.5rem;
+    padding: 0.75rem;
+    box-shadow: var(--shadow-xl);
+    z-index: 1000;
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+    transition: var(--transition);
+}
+
+.sub-actions.active {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: all;
+}
+
+.sub-action-btn {
+    width: 100%;
+    background: var(--gray-50);
+    color: var(--gray-700);
+    border: 1px solid var(--gray-200);
+    padding: 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-align: left;
+}
+
+.sub-action-btn:last-child {
+    margin-bottom: 0;
+}
+
+.sub-action-btn:hover {
+    background: var(--light-blue);
+    color: var(--primary-blue);
+    border-color: var(--accent-blue);
+    transform: translateX(4px);
+}
+
+.sub-action-btn.selected {
+    background: var(--gradient-success);
+    color: var(--white);
+    border-color: var(--success-green);
+    font-weight: 600;
+    box-shadow: var(--shadow-md);
+}
+
+.sub-icon {
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+/* Custom Question Section */
+.custom-question-section {
+    border-top: 2px solid var(--gray-200);
+    padding-top: 2rem;
+}
+
+.section-divider {
+    text-align: center;
+    margin: 1rem 0 2rem;
+    position: relative;
+}
+
+.section-divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--gray-300);
+}
+
+.divider-text {
+    background: var(--white);
+    color: var(--gray-600);
+    padding: 0 1rem;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.875rem;
+    position: relative;
+}
+
+.custom-question-section h5 {
+    color: var(--primary-blue);
+    font-weight: 700;
+    margin-bottom: 1rem;
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    font-size: 0.875rem;
+}
+
+/* Selected Action Display */
+.selected-action-display {
+    background: var(--gradient-success);
+    color: var(--white);
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    margin: 1rem 0;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    animation: slideIn 0.3s ease-out;
+}
+
+.selected-action-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.selected-action-label {
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.selected-action-text {
+    font-weight: 700;
+    font-size: 1rem;
+    flex: 1;
+}
+
+.clear-action-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: var(--white);
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1.25rem;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.clear-action-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Page Tabs Styles */
@@ -1633,56 +2374,6 @@ body {
     border: 1px solid var(--gray-200);
 }
 
-/* Scrollbar Styles */
-::-webkit-scrollbar {
-    width: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: var(--gray-100);
-    border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-    background: var(--gradient-primary);
-    border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: var(--primary-blue);
-}
-
-/* Text Selection Tooltip */
-.text-selection-tooltip {
-    position: absolute;
-    z-index: 9999;
-    background: var(--white);
-    border: 2px solid var(--primary-blue);
-    border-radius: 8px;
-    box-shadow: var(--shadow-lg);
-    padding: 0.5rem;
-}
-
-.ask-ai-button {
-    background: var(--gradient-primary);
-    color: var(--white);
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 0.875rem;
-    transition: var(--transition);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.ask-ai-button:hover {
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-blue);
-}
-
 /* AI Modal Styles */
 .ai-modal-section {
     margin-bottom: 2rem;
@@ -1738,31 +2429,67 @@ body {
     margin-bottom: 2rem;
 }
 
-.ai-send-btn {
+.ai-send-btn.professional-send-btn {
     background: var(--gradient-primary);
     color: var(--white);
     border: none;
-    padding: 0.75rem 2rem;
-    border-radius: 8px;
+    padding: 1rem 2rem;
+    border-radius: 12px;
     cursor: pointer;
     font-weight: 600;
-    font-size: 0.875rem;
-    text-transform: uppercase;
-    letter-spacing: 0.025em;
+    font-size: 0.95rem;
     transition: var(--transition);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    box-shadow: var(--shadow-md);
+    min-width: 160px;
 }
 
-.ai-send-btn:hover:not(:disabled) {
+.send-btn-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.ai-send-btn.professional-send-btn:hover:not(:disabled) {
     transform: translateY(-2px);
     box-shadow: var(--shadow-blue);
 }
 
-.ai-send-btn:disabled {
+.ai-send-btn.professional-send-btn:disabled {
     opacity: 0.7;
     cursor: not-allowed;
+    transform: none !important;
+    box-shadow: var(--shadow-sm) !important;
+}
+
+/* Responsive Design for Action Cards */
+@media (max-width: 768px) {
+    .action-cards-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .action-card {
+        padding: 1.25rem;
+    }
+    
+    .card-header {
+        margin-bottom: 1rem;
+    }
+    
+    .card-icon {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .card-title h5 {
+        font-size: 1rem;
+    }
+    
+    .action-option-btn {
+        padding: 0.75rem;
+        font-size: 0.8rem;
+    }
 }
 
 .send-icon {
@@ -1800,6 +2527,148 @@ body {
     margin: 0;
 }
 
+/* Text Selection Tooltip */
+.text-selection-tooltip {
+    position: absolute;
+    z-index: 9999;
+    background: var(--white);
+    border: 2px solid var(--primary-blue);
+    border-radius: 8px;
+    box-shadow: var(--shadow-lg);
+    padding: 0.5rem;
+}
+
+.ask-ai-button {
+    background: var(--gradient-primary);
+    color: var(--white);
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.875rem;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.ask-ai-button:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-blue);
+}
+
+/* Loading Spinner Styles */
+.loading-spinner {
+    text-align: center;
+    padding: 2rem;
+    background: var(--gray-50);
+    border-radius: 12px;
+    border: 1px solid var(--gray-200);
+    margin: 1rem 0;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--gray-200);
+    border-top: 4px solid var(--primary-blue);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-spinner p {
+    color: var(--gray-600);
+    font-weight: 500;
+    margin: 0;
+}
+
+/* Success and Error Message Styles */
+.success-message {
+    background: var(--gradient-success);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin: 1rem 0;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.success-message p {
+    margin: 0;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.error-message {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin: 1rem 0;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.error-message p {
+    margin: 0;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Toast Notification Styles */
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10001;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    animation: slideInRight 0.3s ease-out;
+    min-width: 300px;
+}
+
+.success-toast {
+    background: var(--gradient-success);
+    color: white;
+}
+
+.toast-content {
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.toast-icon {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.toast-message {
+    font-weight: 600;
+    flex: 1;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
 /* Selection Highlighting */
 ::selection {
     background: rgba(30, 64, 175, 0.2);
@@ -1810,6 +2679,27 @@ body {
     background: rgba(30, 64, 175, 0.2);
     color: var(--black);
 }
+
+/* Scrollbar Styles */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--gray-100);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--gradient-primary);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-blue);
+}
+
+/* Responsive Design */
 @media (max-width: 1200px) {
     .sidebar {
         width: 350px;
@@ -1817,6 +2707,11 @@ body {
     
     .sidebar.collapsed {
         margin-left: -350px;
+    }
+    
+    .quick-actions {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
     }
 }
 
@@ -1874,6 +2769,15 @@ body {
     .sidebar-content {
         padding: 1rem;
     }
+    
+    .quick-actions {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .action-selector {
+        padding: 1.5rem;
+    }
 }
 
 @media (max-width: 480px) {
@@ -1892,155 +2796,17 @@ body {
     .detail-group {
         padding: 1rem;
     }
+    
+    .main-action-btn {
+        padding: 1rem;
+        font-size: 0.875rem;
+    }
+    
+    .sub-action-btn {
+        padding: 0.75rem;
+        font-size: 0.8rem;
+    }
 }
-        /* Loading Spinner Styles */
-        .loading-spinner {
-            text-align: center;
-            padding: 2rem;
-            background: var(--gray-50);
-            border-radius: 12px;
-            border: 1px solid var(--gray-200);
-            margin: 1rem 0;
-        }
-
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid var(--gray-200);
-            border-top: 4px solid var(--primary-blue);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 1rem;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .loading-spinner p {
-            color: var(--gray-600);
-            font-weight: 500;
-            margin: 0;
-        }
-
-        /* Success and Error Message Styles */
-        .success-message {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-            padding: 1.5rem;
-            border-radius: 12px;
-            margin: 1rem 0;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-        }
-
-        .success-message p {
-            margin: 0;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .error-message {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            color: white;
-            padding: 1.5rem;
-            border-radius: 12px;
-            margin: 1rem 0;
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-        }
-
-        .error-message p {
-            margin: 0;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        /* Toast Notification Styles */
-        .toast {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 10001;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-            animation: slideInRight 0.3s ease-out;
-            min-width: 300px;
-        }
-
-        .success-toast {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-        }
-
-        .toast-content {
-            padding: 1rem 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .toast-icon {
-            font-size: 1.25rem;
-            flex-shrink: 0;
-        }
-
-        .toast-message {
-            font-weight: 600;
-            flex: 1;
-        }
-
-        @keyframes slideInRight {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        /* Enhanced AI Response Styles */
-        #aiResponseContent pre {
-            background: var(--gray-50);
-            border: 1px solid var(--gray-200);
-            border-radius: 8px;
-            padding: 1rem;
-            white-space: pre-wrap;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.875rem;
-            line-height: 1.6;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        /* Disabled button state */
-        .ai-send-btn:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-            transform: none !important;
-            box-shadow: var(--shadow-sm) !important;
-        }
-
-        /* Enhanced visual feedback for updated content */
-        .content-item.updated {
-            animation: highlightUpdate 2s ease-out;
-        }
-
-        @keyframes highlightUpdate {
-            0% {
-                background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-                transform: scale(1.02);
-            }
-            100% {
-                background: var(--white);
-                transform: scale(1);
-            }
-        }
     </style>
 </body>
 </html>

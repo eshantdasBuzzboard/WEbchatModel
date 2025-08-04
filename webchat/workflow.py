@@ -105,6 +105,7 @@ async def get_updated_page_content_openai(
     logger.info(json.dumps(main_output, indent=4, ensure_ascii=False))
 
     logger.info("=" * 60)
+    logger.info(f"Updated answer {response}")
     logger.info("OPENAI RESPONSE FROM return_updated_wesite:")
     try:
         if isinstance(response, (dict, list)):

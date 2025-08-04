@@ -3,6 +3,7 @@ from pydantic import BaseModel
 import json
 import logging
 import traceback
+from typing import Optional
 
 from test_data import (
     main_payload_test_data,
@@ -16,6 +17,7 @@ from app.utils.content_utils import (
     extract_updated_page_from_response,
     identify_content_section,
 )
+from app.utils.constants import ACTION_QUESTIONS
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -29,6 +31,7 @@ class AIRequest(BaseModel):
     webpage_output: dict
     payload_output: dict
     business_info: dict
+    action_type: Optional[str] = None  # New field for action type
 
 
 def get_page_titles_flexible(combined_data, element_index):
@@ -68,6 +71,7 @@ async def ask_ai(request: AIRequest):
     current_page = request.current_page
     webpage_output = request.webpage_output
     payload_output = request.payload_output
+    action_type = request.action_type
     # business_info_data = request.business_info
 
     page_name = webpage_output.get(
@@ -75,20 +79,45 @@ async def ask_ai(request: AIRequest):
     )
     content_section = identify_content_section(selected_text, webpage_output)
 
+    # Determine the actual question to process
+    if action_type and action_type in ACTION_QUESTIONS:
+        # Use predefined action question
+        actual_question = ACTION_QUESTIONS[action_type]
+        logger.info(f"Processing action: {action_type} -> {actual_question}")
+    elif user_question and user_question.strip():
+        # Use custom user question
+        logger.info(f"Processing question: {user_question}")
+        actual_question = user_question
+
+    else:
+        # No valid question provided
+        return {
+            "success": False,
+            "response": "No question or action provided",
+            "summary": {
+                "set_number": current_set - 1,
+                "page_name": page_name,
+                "content_section": content_section,
+                "selected_text": selected_text,
+                "user_question": user_question,
+                "action_type": action_type,
+            },
+        }
+
     simplified_response = {
         "set_number": current_set - 1,
         "page_name": page_name,
         "content_section": content_section,
         "selected_text": selected_text,
-        "user_question": user_question,
+        "user_question": actual_question,
+        "action_type": action_type,
+        "is_predefined_action": bool(action_type),
     }
 
     logger.info(json.dumps(simplified_response, indent=4, ensure_ascii=False))
     logger.info("=" * 60)
 
-    is_update_request = True  # You can update this logic if needed
-
-    if is_update_request and selected_text:
+    if selected_text:
         try:
             all_pages_names = get_page_titles_flexible(combined_data, current_set - 1)
             payload_output = combined_data[current_set - 1]
@@ -102,17 +131,19 @@ async def ask_ai(request: AIRequest):
                 else str(selected_text)
             )
 
+            # Use the actual question (either from action or user input)
             response = await get_updated_page_content_openai(
                 payload_output,
                 webpage_output_for_api,
                 page_name,
-                user_question,
+                actual_question,  # Use actual_question instead of user_question
                 selected_text_fixed,
                 content_section,
                 all_pages_names,
             )
 
             logger.info("=" * 60)
+            logger.info(f"Response \n {response}")
             logger.info(f"{content_section}")
             logger.info("OPENAI RESPONSE RECEIVED:")
             logger.info(f"Response type: {type(response)}")
@@ -138,6 +169,7 @@ async def ask_ai(request: AIRequest):
                 updated_page = extract_updated_page_from_response(
                     response, current_set, current_page
                 )
+                logger.info(f"Updated Page \n {updated_page}")
 
                 if updated_page:
                     logger.info(
@@ -152,11 +184,18 @@ async def ask_ai(request: AIRequest):
                         f"Page_Name in converted page: {converted_page.get('Page_Name', 'NOT FOUND')}"
                     )
 
+                    # Create success message based on action type
+                    if action_type:
+                        success_message = f"Content successfully {ACTION_QUESTIONS[action_type].lower()}!"
+                    else:
+                        success_message = "Page content has been updated successfully!"
+
                     return {
                         "success": True,
-                        "response": "Page content has been updated successfully!",
+                        "response": success_message,
                         "updated_content": [converted_page],
                         "summary": simplified_response,
+                        "action_applied": action_type,
                     }
                 else:
                     logger.error("Failed to extract updated page from response")
@@ -193,14 +232,25 @@ async def ask_ai(request: AIRequest):
             }
     else:
         logger.info("Processing as regular AI response (no update request)")
-        ai_response = f"""Set: {current_set} | Page: {page_name} | Section: {content_section}
+
+        if action_type:
+            ai_response = f"""Set: {current_set} | Page: {page_name} | Section: {content_section}
 
 Selected Text: "{selected_text}"
-Question: {user_question}
+Action: {ACTION_QUESTIONS[action_type]}
 
-AI Analysis: This is a regular AI response. To update page content, try asking questions like "update this text" or "change this content"."""
+AI Analysis: This appears to be a predefined action request, but the system determined it's not an update operation. This might be because no text was selected or the content doesn't require updating."""
+        else:
+            ai_response = f"""Set: {current_set} | Page: {page_name} | Section: {content_section}
+
+Selected Text: "{selected_text}"
+Question: {actual_question}
+
+AI Analysis: This is a regular AI response. To update page content, try selecting text and asking questions about modifying, updating, or improving the content."""
+
         return {
             "success": True,
             "response": ai_response,
             "summary": simplified_response,
+            "action_applied": action_type,
         }

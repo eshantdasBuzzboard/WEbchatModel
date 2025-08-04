@@ -256,7 +256,7 @@ Please before generating make sure the guidelines are followed.
 Just update the section which they are mentioning about and return the exact section name you get from curent_output, updated_string for that and only specific to that section. The complete updated string for that section. If user asks to change only a small part than change it in. way the other text and the new text are coherent and if the whole section is changed then return the complete new string.
 Basically in either case you need to return a completely new updated string with or without old context for that section based on the query what user asks. Also if user asks to update h2 section return the index of which h2. For example if its the first h2 content then its 0th index.
 Crosscheck thoroughy not to miss out following any guidelines and be very sure to maintain the same tone and voice in your reponse which you will be generating.
-Make sure whatever you will generate will go to front end so for paragraphs add <br> if you are adding bullet points make sure every bullet point is start from a new line and the format does nor break in the UI. Based on that generate it.
+Make sure whatever you will generate will go to front end so for paragraphs add <br> if you are adding bullet points make sure every bullet point is start from a new line and the format does nor break in the UI. Based on that generate it.Make sure it is mandatory to add <br> when generating bullet points so that it displays well in the UI.
 """
 
 website_update_prompt = ChatPromptTemplate.from_messages([
