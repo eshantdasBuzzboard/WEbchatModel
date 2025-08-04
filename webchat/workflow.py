@@ -19,11 +19,7 @@ import os
 
 
 def setup_app_logger():
-    """Setup a specific logger that writes to app.log"""
-    log_file = "app.log"
-    if os.path.exists(log_file):
-        os.remove(log_file)  # Ensure it's always a fresh file
-
+    """Setup a logger that works in serverless environments like Vercel"""
     app_logger = logging.getLogger("workflow_logger")
 
     # Remove existing handlers (safety)
@@ -31,10 +27,12 @@ def setup_app_logger():
         app_logger.removeHandler(handler)
 
     app_logger.setLevel(logging.INFO)
-    file_handler = logging.FileHandler(log_file, encoding="utf-8", mode="w")
+
+    # Use StreamHandler instead of FileHandler for serverless environments
+    stream_handler = logging.StreamHandler()
     formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-    file_handler.setFormatter(formatter)
-    app_logger.addHandler(file_handler)
+    stream_handler.setFormatter(formatter)
+    app_logger.addHandler(stream_handler)
     app_logger.propagate = False
 
     return app_logger
