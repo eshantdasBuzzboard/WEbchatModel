@@ -35,8 +35,11 @@ class Page(BaseModel):
     )
 
 
-class SectionUpdateOnly(BaseModel):
-    updated_text: str = Field(..., description="the updated complete section.")
+class SuggestedOutputs(BaseModel):
+    outputs_list: list[str] = Field(
+        ...,
+        description="List of three suggested outputs which you are supposed to change",
+    )
     index: int = Field(
         default=None, description="The index only if they asked to update h2 content"
     )

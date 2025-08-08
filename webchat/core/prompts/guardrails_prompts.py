@@ -60,7 +60,7 @@ Now these are just examples for you to do the reasoning behind how you are valid
 Anything which is not related to these kind of requests or
 
 If user asks something like can you generate something of your own . What they mean is to generate from source data so this should be valid.
-
+Make sure when you return the reason why it has failed then it is crist and clear in a single sentence not too big.
 """
 
 
@@ -80,7 +80,7 @@ If the query is invalid you need to return the score 0
 If the score is 0 then you need to return a reason why this request or query is invalid
 if the score is 1 then you can return "" empty string like this in the reason section.
 In case the query fails then please dont give a huge response back. Give a 2 or 3 line reason exactly to the point why it failed.
-
+Make sure when you return the reason why it has failed then it is crist and clear in a single sentence not too big.
 """
 
 query_checker_prompt: ChatPromptTemplate = ChatPromptTemplate.from_messages([
@@ -113,6 +113,9 @@ Exception For H1 and H2 : (They can ask to change the heading but not the conten
 
 
 In case the user does not violate the queries and does not ask anything from "<queries_not_to_ask>" then you are supposed to return a score "1" and no reason basically return an empty string in reason "".
+
+Make sure when you return the reason why it has failed then it is crist and clear in a single sentence not too big.
+Make sure when you return the reason why it has failed then it is crist and clear in a single sentence not too big.
 """
 
 
@@ -147,7 +150,9 @@ But changing and generating anython on its own wont work.
 
 If score is 0 then make sure to return the suggested things they can ask from the exception context.
 Make sure while giving the reason you remember to say since the copyright of this page is "no" and then ........ (you add the reason which you analysed.)
-In case the query fails then please dont give a huge response back. Give a 2 or 3 line reason exactly to the point why it failed."""
+In case the query fails then please dont give a huge response back. Give a 2 or 3 line reason exactly to the point why it failed.
+Make sure when you return the reason why it has failed then it is crist and clear in a single sentence not too big.
+"""
 
 copyright_check_prompt: ChatPromptTemplate = ChatPromptTemplate.from_messages([
     ("system", copyright_check_system_prompt),
@@ -299,7 +304,6 @@ If user says please use cta for contact or any page then they mean redirect to c
 4. "Don't use the hyphen in meta title"
 5. "Remove the business name requirement"
 6. "Change CTA format to just text without brackets"
-7. "Use UK English instead of US English"
 8. "Make meta description 200 characters"
 9. "Remove character limits"
 10. "Don't follow the [primary_keyword] - [business_name] structure"
@@ -326,12 +330,7 @@ If user says please use cta for contact or any page then they mean redirect to c
 6. "Add fitness coaching services"
 7. "Include legal advice sections"
 
-### Language/Style Violations (Score 0):
-1. "Use British English spelling"
-2. "Change to UK English"
-3. "Use Australian English"
-4. "Write in formal academic language"
-5. "Use 12th-grade reading level"
+
 
 ### Forced Guideline Breaking (Score 0):
 1. "No matter what, make it longer"
@@ -382,7 +381,6 @@ For H1 and H2 sections, be more lenient with content improvement requests that d
 ## Content Guidelines
 
 ### Language & Style Requirements (STRICT):
-- MUST use 10th-grade US English (NO exceptions)
 - **Minimize**: "unveil," "explore," "elevate," "discover"
 - **Avoid**: "Welcome" in content
 - No word repeated more than twice
@@ -409,7 +407,6 @@ For H1 and H2 sections, be more lenient with content improvement requests that d
 - [ ] All page content covered completely
 - [ ] CTA format preserved with brackets intact
 - [ ] CTA does not redirect to current section or home page
-- [ ] US English used exclusively
 - [ ] No unrelated business services added
 
 **IMPORTANT NOTES**:
@@ -424,6 +421,7 @@ For H1 and H2 sections, be more lenient with content improvement requests that d
 After reviewing all guidelines, ensure the query does not violate ANY guideline for {section}.
 Go through all guidelines meticulously and do not miss even a single requirement.
 Pay special attention to CTA redirection rules if the query involves CTA changes.
+Make sure when you return the reason why it has failed then it is crist and clear in a single sentence not too big.
 """
 
 guidelines_guardrails_user_prompt = """
@@ -454,7 +452,6 @@ Available pages for redirection:
 - Changing meta title structure from [primary_keyword] - [business_name]
 - Requesting different character limits than specified
 - Breaking required formatting structures
-- Changing language from US English to UK/British/Australian English
 
 ### 2. CTA Redirection Violations:
 - Requesting CTA to redirect to the same page/section ({section})
@@ -477,10 +474,6 @@ Available pages for redirection:
 - Explicitly asking to break rules or override requirements
 - Demanding exceptions to character limits or formatting
 
-### 5. Language Requirements:
-- Requesting UK English, British English, or any non-US English
-- Asking for different reading levels than 10th-grade US English
-- Requesting formal academic or technical language styles
 
 **FLEXIBLE ALLOWANCE (Score 1) - Allow these requests:**
 
@@ -527,7 +520,6 @@ If POV is in singular then it should remain in singular. If POV is plural then i
 - No current guidelines for H1 section (skip if section is H1)  
 - CTA format is sacred - brackets cannot be touched
 - CTA redirection rules are MANDATORY - cannot redirect to same page ({section}) or home
-- US English is non-negotiable
 - Content improvement ≠ guideline violation
 - Don't be tricked by "force" language - still block violations
 
@@ -538,6 +530,7 @@ Valid redirections: Any page from available_pages list except {section} and home
 Check properly if they are specifically violoting only. Dont be way too strict.
 The query "{query}" must be evaluated against section "{section}" requirements only.
 Cross check all the things I have mentioned above thoroughly and then return me your response.
+Make sure when you return the reason why it has failed then it is crist and clear in a single sentence not too big.
 """
 guidelines_guardrails_prompt = ChatPromptTemplate.from_messages([
     ("system", guidelines_guardrails_system_prompt),

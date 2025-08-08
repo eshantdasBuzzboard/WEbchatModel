@@ -1,5 +1,7 @@
 from webchat.core.prompts.core_prompts import website_update_prompt
-from webchat.core.pydantic_classes.guardrails_classes import SectionUpdateOnly
+from webchat.core.pydantic_classes.guardrails_classes import (
+    SuggestedOutputs,
+)
 
 from dotenv import load_dotenv
 
@@ -22,7 +24,7 @@ async def return_updated_wesite(
     section,
     all_pages_names,
 ) -> Any:
-    llmr = llm.with_structured_output(SectionUpdateOnly)
+    llmr = llm.with_structured_output(SuggestedOutputs)
     updated_output_chain = website_update_prompt | llmr
     input_data = {
         "business_info": business_info,

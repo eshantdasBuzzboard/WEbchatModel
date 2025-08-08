@@ -1,5 +1,3 @@
-
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -199,6 +197,17 @@
                     <p>Processing your request...</p>
                 </div>
                 
+                <!-- Suggestions Display -->
+                <div id="suggestionsContainer" class="suggestions-container" style="display: none;">
+                    <h4>Suggested Improvements</h4>
+                    <div id="suggestionsContent" class="suggestions-content">
+                        <!-- Suggestions will be populated here -->
+                    </div>
+                    <div class="suggestions-actions">
+                        <button id="skipSuggestions" class="skip-btn">Skip & Keep Original</button>
+                    </div>
+                </div>
+                
                 <div id="aiResponse" class="ai-response" style="display: none;">
                     <h4>AI Response:</h4>
                     <div id="aiResponseContent"></div>
@@ -230,7 +239,7 @@
             business_info: {{ business_info | tojson }}
         };
 
-        console.log('Initial Data:', initialData); // Debug log
+        console.log('Initial Data:', initialData);
 
         // DOM elements
         const sidebar = document.getElementById('sidebar');
@@ -261,6 +270,11 @@
         const selectedActionDisplay = document.getElementById('selectedActionDisplay');
         const selectedActionText = document.getElementById('selectedActionText');
         const clearAction = document.getElementById('clearAction');
+        
+        // New suggestion elements
+        const suggestionsContainer = document.getElementById('suggestionsContainer');
+        const suggestionsContent = document.getElementById('suggestionsContent');
+        const skipSuggestions = document.getElementById('skipSuggestions');
 
         // Current state
         let currentSet = 1;
@@ -270,6 +284,7 @@
         let currentPayloadData = {};
         let currentBusinessData = {};
         let selectedAction = null;
+        let currentSuggestions = [];
 
         // Action definitions
         const actionDefinitions = {
@@ -331,6 +346,12 @@
                     clearSelectedAction();
                 }
             });
+
+            // Skip suggestions handler
+            skipSuggestions.addEventListener('click', () => {
+                hideSuggestions();
+                showAIMessage('You chose to keep the original content unchanged.');
+            });
         });
 
         function clearSelectedAction() {
@@ -347,6 +368,126 @@
             userQuestion.placeholder = 'Describe how you\'d like to modify the selected content...';
         }
 
+        // Show suggestions in the modal
+        function showSuggestions(suggestions, message) {
+            currentSuggestions = suggestions;
+            
+            let html = `<div class="suggestions-message">${message}</div>`;
+            
+            suggestions.forEach((suggestion, suggestionIndex) => {
+                const section = suggestion.section || 'Content';
+                const outputs = suggestion.outputs_list || [];
+                
+                html += `
+                    <div class="suggestion-group">
+                        <div class="suggestion-header">
+                            <h5>Suggestions for: ${section}</h5>
+                            <div class="original-text">
+                                <strong>Original:</strong> "${suggestion.original_text || selectedText}"
+                            </div>
+                        </div>
+                        <div class="suggestion-options">
+                `;
+                
+                outputs.forEach((output, optionIndex) => {
+                    html += `
+                        <div class="suggestion-option" data-suggestion-index="${suggestionIndex}" data-option-index="${optionIndex}">
+                            <div class="option-header">
+                                <span class="option-number">${optionIndex + 1}</span>
+                                <button class="select-option-btn" onclick="selectSuggestion(${suggestionIndex}, ${optionIndex}, '${output.replace(/'/g, "\\'")}')">
+                                    Select This Option
+                                </button>
+                            </div>
+                            <div class="option-content">
+                                "${output}"
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+            
+            suggestionsContent.innerHTML = html;
+            suggestionsContainer.style.display = 'block';
+            loadingSpinner.style.display = 'none';
+        }
+
+        // Hide suggestions
+        function hideSuggestions() {
+            suggestionsContainer.style.display = 'none';
+            currentSuggestions = [];
+        }
+
+        // Select a specific suggestion
+        async function selectSuggestion(suggestionIndex, optionIndex, selectedOutput) {
+            try {
+                const suggestion = currentSuggestions[suggestionIndex];
+                const selection = {
+                    outputs_list: suggestion.outputs_list,
+                    index: suggestion.index,
+                    section: suggestion.section,
+                    selected_output: selectedOutput,
+                    original_text: suggestion.original_text || selectedText
+                };
+
+                console.log('Applying selection:', selection);
+
+                // Show loading state
+                loadingSpinner.style.display = 'block';
+                suggestionsContainer.style.display = 'none';
+
+                const response = await fetch('/api/apply-selection', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        selected_option: selection,
+                        current_set: currentSet,
+                        current_page: currentPageIndex,
+                        webpage_output: currentWebpageData,
+                        payload_output: currentPayloadData,
+                        business_info: currentBusinessData
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success && data.updated_content) {
+                    // Update the page with new content
+                    updateWebpageContent(data.updated_content[0]);
+                    showAIMessage('✅ Content successfully updated with your selection!', 'success');
+                    
+                    // Close the modal after a brief delay
+                    setTimeout(() => {
+                        askAIModal.style.display = 'none';
+                        clearSelection();
+                        clearSelectedAction();
+                    }, 1500);
+                } else {
+                    showAIMessage(`❌ Failed to apply selection: ${data.response || 'Unknown error'}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error applying selection:', error);
+                showAIMessage('❌ Error applying selection. Please try again.', 'error');
+            } finally {
+                loadingSpinner.style.display = 'none';
+            }
+        }
+
+        // Show AI message in the response area
+        function showAIMessage(message, type = 'info') {
+            const className = type === 'success' ? 'success-message' : 
+                            type === 'error' ? 'error-message' : 'info-message';
+            
+            aiResponseContent.innerHTML = `<div class="${className}"><p>${message}</p></div>`;
+            aiResponse.style.display = 'block';
+        }
+
         // Sidebar toggle functionality
         toggleBtn.addEventListener('click', () => {
             sidebar.classList.toggle('collapsed');
@@ -355,7 +496,7 @@
         // Set selector change handler
         setSelect.addEventListener('change', (e) => {
             currentSet = parseInt(e.target.value);
-            currentPageIndex = 0; // Reset to first page when changing sets
+            currentPageIndex = 0;
             loadDataForSet(currentSet);
         });
 
@@ -374,7 +515,9 @@
             selectedTextDisplay.textContent = selectedText;
             askAIModal.style.display = 'block';
             textSelectionTooltip.style.display = 'none';
-            clearSelectedAction(); // Reset action selection
+            clearSelectedAction();
+            hideSuggestions();
+            aiResponse.style.display = 'none';
             userQuestion.focus();
         });
 
@@ -382,6 +525,7 @@
             askAIModal.style.display = 'none';
             clearSelection();
             clearSelectedAction();
+            hideSuggestions();
         });
 
         // Show success toast
@@ -427,16 +571,12 @@
         function updateWebpageContent(newData) {
             console.log('Updating webpage content with:', newData);
             
-            // Handle the case where newData might be the full structure or just the page
             let pageData = newData;
             
-            // If newData is an array with the full structure, extract the current page
             if (Array.isArray(newData) && newData.length > 0) {
                 const firstItem = newData[0];
                 
-                // Check if this is a single page or full structure
                 if (firstItem.pages) {
-                    // Full structure format
                     const setIndex = currentSet - 1;
                     const pageIndex = currentPageIndex;
                     
@@ -448,23 +588,18 @@
                         return;
                     }
                 } else {
-                    // Single page format - check if it needs key conversion
                     if (firstItem.Page_Name || firstItem.Meta_Title) {
-                        // This is the update format, convert it back
                         pageData = convertPageKeysFromUpdate(firstItem);
                         console.log('Converted page data from update format:', pageData);
                     } else {
-                        // Already in display format
                         pageData = firstItem;
                         console.log('Using direct page data:', pageData);
                     }
                 }
             } else if (typeof newData === 'object' && newData['Page Name']) {
-                // newData is already the page object in display format
                 pageData = newData;
                 console.log('Using direct page data:', pageData);
             } else if (typeof newData === 'object' && newData['Page_Name']) {
-                // newData is in update format, convert it
                 pageData = convertPageKeysFromUpdate(newData);
                 console.log('Converted single page from update format:', pageData);
             } else {
@@ -496,11 +631,9 @@
             
             // Determine what to send based on selected action or custom question
             if (selectedAction) {
-                // Send the action as the question
                 questionToSend = actionDefinitions[selectedAction];
                 console.log('Sending action:', selectedAction, 'as question:', questionToSend);
             } else {
-                // Send custom question
                 questionToSend = userQuestion.value.trim();
                 if (!questionToSend) {
                     alert('Please select an action or enter a question!');
@@ -512,17 +645,18 @@
             sendAIQuestion.disabled = true;
             loadingSpinner.style.display = 'block';
             aiResponse.style.display = 'none';
+            hideSuggestions();
 
             try {
                 const requestBody = {
                     selected_text: selectedText,
-                    user_question: selectedAction ? '' : questionToSend, // Empty string if action selected
+                    user_question: selectedAction ? '' : questionToSend,
                     current_set: currentSet,
                     current_page: currentPageIndex,
                     webpage_output: currentWebpageData,
                     payload_output: currentPayloadData,
                     business_info: currentBusinessData,
-                    action_type: selectedAction || null // Add action type to request
+                    action_type: selectedAction || null
                 };
 
                 console.log('Sending request:', requestBody);
@@ -538,36 +672,29 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    // Check if response contains updated page content
-                    if (data.updated_content) {
-                        // Check if the response is a list (successful update)
+                    // Check response type
+                    if (data.response_type === 'suggestions' && data.suggestions) {
+                        // Show suggestions for user to choose from
+                        showSuggestions(data.suggestions, data.message || 'Choose from the suggestions below:');
+                    } else if (data.response_type === 'direct_update' && data.updated_content) {
+                        // Direct update (old behavior)
                         if (Array.isArray(data.updated_content)) {
-                            // Update the page with new content
-                            updateWebpageContent(data.updated_content[0]); // Assuming first item is the updated page
-                            
-                            // Show success message in AI response
-                            aiResponseContent.innerHTML = '<div class="success-message"><p>✅ Page has been successfully updated with your changes!</p></div>';
-                            aiResponse.style.display = 'block';
+                            updateWebpageContent(data.updated_content[0]);
+                            showAIMessage('✅ Page has been successfully updated!', 'success');
                         } else if (typeof data.updated_content === 'string') {
-                            // Page update failed, show the reason
-                            aiResponseContent.innerHTML = `<div class="error-message"><p>❌ Page update failed: ${data.updated_content}</p></div>`;
-                            aiResponse.style.display = 'block';
+                            showAIMessage(`❌ Page update failed: ${data.updated_content}`, 'error');
                         }
                     } else {
-                        // Regular AI response without page update
-                        aiResponseContent.innerHTML = `<pre>${data.response}</pre>`;
-                        aiResponse.style.display = 'block';
+                        // Regular AI response without update
+                        showAIMessage(data.response);
                     }
                 } else {
-                    aiResponseContent.innerHTML = '<div class="error-message"><p>Sorry, there was an error processing your request.</p></div>';
-                    aiResponse.style.display = 'block';
+                    showAIMessage('❌ Sorry, there was an error processing your request.', 'error');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                aiResponseContent.innerHTML = '<div class="error-message"><p>Sorry, there was an error connecting to the AI service.</p></div>';
-                aiResponse.style.display = 'block';
+                showAIMessage('❌ Sorry, there was an error connecting to the AI service.', 'error');
             } finally {
-                // Reset button state and hide loading
                 sendAIQuestion.disabled = false;
                 loadingSpinner.style.display = 'none';
             }
@@ -581,12 +708,12 @@
                 askAIModal.style.display = 'none';
                 clearSelection();
                 clearSelectedAction();
+                hideSuggestions();
             }
         });
 
         // Text selection functionality
         document.addEventListener('mouseup', (e) => {
-            // Only show tooltip if selection is within webpage content
             if (!webpageContent.contains(e.target)) {
                 textSelectionTooltip.style.display = 'none';
                 return;
@@ -603,7 +730,6 @@
             }
         });
 
-        // Hide tooltip when clicking elsewhere
         document.addEventListener('click', (e) => {
             if (!textSelectionTooltip.contains(e.target) && !askAIModal.contains(e.target)) {
                 if (window.getSelection().toString().trim() === '') {
@@ -616,7 +742,6 @@
             const tooltip = textSelectionTooltip;
             tooltip.style.display = 'block';
             
-            // Position tooltip near the selection
             const x = event.pageX + 10;
             const y = event.pageY - 40;
             
@@ -630,20 +755,19 @@
             userQuestion.value = '';
             aiResponse.style.display = 'none';
             loadingSpinner.style.display = 'none';
+            hideSuggestions();
         }
 
         // Load data for specific set
         function loadDataForSet(setNumber) {
-            console.log('Loading data for set:', setNumber); // Debug log
+            console.log('Loading data for set:', setNumber);
             const index = setNumber - 1;
             currentSet = setNumber;
             currentPageIndex = 0;
             
-            // Generate page tabs
             if (initialData.main_payload && initialData.main_payload[index] && initialData.main_payload[index].pages) {
-                console.log('Generating tabs for pages:', initialData.main_payload[index].pages); // Debug log
+                console.log('Generating tabs for pages:', initialData.main_payload[index].pages);
                 generatePageTabs(initialData.main_payload[index].pages);
-                // Load first page by default
                 loadPageData(0);
             } else {
                 console.error('No pages found for set', setNumber);
@@ -674,42 +798,37 @@
 
         // Load specific page data
         function loadPageData(pageIndex) {
-            console.log('Loading page data for index:', pageIndex); // Debug log
+            console.log('Loading page data for index:', pageIndex);
             currentPageIndex = pageIndex;
             const setIndex = currentSet - 1;
             
-            // Update active tab
             document.querySelectorAll('.page-tab').forEach((tab, index) => {
                 tab.classList.toggle('active', index === pageIndex);
             });
             
-            // Load main payload data for this specific page
             if (initialData.main_payload[setIndex] && initialData.main_payload[setIndex].pages[pageIndex]) {
                 currentPayloadData = initialData.main_payload[setIndex].pages[pageIndex];
                 displayMainPayloadSinglePage(currentPayloadData);
             }
             
-            // Load webpage content data for this specific page
-            console.log('Looking for webpage content at:', setIndex, pageIndex); // Debug log
-            console.log('Webpage content structure:', initialData.webpage_content[setIndex]); // Debug log
+            console.log('Looking for webpage content at:', setIndex, pageIndex);
+            console.log('Webpage content structure:', initialData.webpage_content[setIndex]);
             
             if (initialData.webpage_content[setIndex] && 
                 initialData.webpage_content[setIndex][pageIndex] && 
                 initialData.webpage_content[setIndex][pageIndex].pages && 
                 initialData.webpage_content[setIndex][pageIndex].pages[0]) {
-                console.log('Found webpage content:', initialData.webpage_content[setIndex][pageIndex].pages[0]); // Debug log
+                console.log('Found webpage content:', initialData.webpage_content[setIndex][pageIndex].pages[0]);
                 currentWebpageData = initialData.webpage_content[setIndex][pageIndex].pages[0];
                 displayWebpageContentSinglePage(currentWebpageData);
             } else {
-                console.log('No webpage content found for this page'); // Debug log
+                console.log('No webpage content found for this page');
                 webpageContent.innerHTML = '<p>No webpage content available for this page</p>';
                 currentWebpageData = {};
             }
 
-            // Update business info
             currentBusinessData = initialData.business_info[setIndex] || {};
             
-            // Update current page info
             const pageName = initialData.main_payload[setIndex].pages[pageIndex].title || 
                            initialData.main_payload[setIndex].pages[pageIndex]['Page Name'] || 
                            `Page ${pageIndex + 1}`;
@@ -985,7 +1104,6 @@
                 `;
                 
                 if (data.business_info) {
-                    // Parse the business_info string into readable format
                     const businessInfoLines = data.business_info.split('\\n');
                     html += `
                         <div class="business-item">
@@ -1062,6 +1180,223 @@ body {
     background: var(--white);
     color: var(--black);
     line-height: 1.6;
+}
+
+/* Suggestions Container Styles */
+.suggestions-container {
+    border-top: 2px solid var(--gray-200);
+    padding-top: 2rem;
+    margin-top: 2rem;
+}
+
+.suggestions-container h4 {
+    color: var(--primary-blue);
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    font-size: 0.875rem;
+}
+
+.suggestions-message {
+    background: var(--light-blue);
+    color: var(--primary-blue);
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    font-weight: 600;
+    border-left: 4px solid var(--primary-blue);
+}
+
+.suggestion-group {
+    margin-bottom: 2.5rem;
+    padding: 2rem;
+    background: var(--white);
+    border-radius: 16px;
+    border: 2px solid var(--gray-200);
+    box-shadow: var(--shadow-md);
+    transition: var(--transition);
+}
+
+.suggestion-group:hover {
+    border-color: var(--accent-blue);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.suggestion-header {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--gray-200);
+}
+
+.suggestion-header h5 {
+    color: var(--primary-blue);
+    font-weight: 700;
+    font-size: 1.125rem;
+    margin-bottom: 0.75rem;
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.original-text {
+    background: var(--gray-50);
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid var(--gray-300);
+    font-style: italic;
+    color: var(--gray-700);
+}
+
+.original-text strong {
+    color: var(--gray-800);
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    font-size: 0.75rem;
+}
+
+.suggestion-options {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.suggestion-option {
+    background: var(--gray-50);
+    border: 2px solid var(--gray-200);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.suggestion-option::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: var(--gray-300);
+    transition: var(--transition);
+}
+
+.suggestion-option:hover {
+    border-color: var(--accent-blue);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.suggestion-option:hover::before {
+    background: var(--gradient-primary);
+}
+
+.option-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    gap: 1rem;
+}
+
+.option-number {
+    background: var(--gradient-primary);
+    color: var(--white);
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    flex-shrink: 0;
+    box-shadow: var(--shadow-sm);
+}
+
+.select-option-btn {
+    background: var(--gradient-success);
+    color: var(--white);
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.875rem;
+    transition: var(--transition);
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    box-shadow: var(--shadow-md);
+    flex-shrink: 0;
+}
+
+.select-option-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+.option-content {
+    background: var(--white);
+    padding: 1.25rem;
+    border-radius: 8px;
+    border: 1px solid var(--gray-200);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--black);
+    border-left: 3px solid var(--accent-blue);
+}
+
+.suggestions-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--gray-200);
+}
+
+.skip-btn {
+    background: var(--gray-200);
+    color: var(--gray-700);
+    border: 2px solid var(--gray-300);
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.875rem;
+    transition: var(--transition);
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.skip-btn:hover {
+    background: var(--gray-300);
+    border-color: var(--gray-400);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Info Message Styles */
+.info-message {
+    background: var(--light-blue);
+    color: var(--primary-blue);
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin: 1rem 0;
+    border-left: 4px solid var(--primary-blue);
+    box-shadow: var(--shadow-sm);
+}
+
+.info-message p {
+    margin: 0;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .container {
@@ -1506,229 +1841,6 @@ body {
     background: rgba(255, 255, 255, 0.3);
     border-color: rgba(255, 255, 255, 0.5);
     transform: scale(1.05);
-}
-
-/* Action Selector Styles */
-.action-selector {
-    background: var(--white);
-    border-radius: 16px;
-    padding: 2rem;
-    border: 1px solid var(--gray-200);
-    box-shadow: var(--shadow-md);
-}
-
-.quick-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
-    margin-bottom: 2rem;
-}
-
-.action-group {
-    position: relative;
-}
-
-.main-action-btn {
-    width: 100%;
-    background: var(--gradient-primary);
-    color: var(--white);
-    border: none;
-    padding: 1.25rem 1.5rem;
-    border-radius: 12px;
-    cursor: pointer;
-    font-weight: 700;
-    font-size: 1rem;
-    transition: var(--transition);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    box-shadow: var(--shadow-md);
-    text-transform: uppercase;
-    letter-spacing: 0.025em;
-}
-
-.main-action-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-blue);
-}
-
-.main-action-btn.active {
-    background: var(--gradient-success);
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.3);
-}
-
-.main-action-btn .action-icon {
-    font-size: 1.25rem;
-}
-
-.main-action-btn .dropdown-arrow {
-    font-size: 0.75rem;
-    transition: var(--transition);
-}
-
-.main-action-btn.active .dropdown-arrow {
-    transform: rotate(180deg);
-}
-
-.sub-actions {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: var(--white);
-    border: 2px solid var(--gray-200);
-    border-radius: 12px;
-    margin-top: 0.5rem;
-    padding: 0.75rem;
-    box-shadow: var(--shadow-xl);
-    z-index: 1000;
-    opacity: 0;
-    transform: translateY(-10px);
-    pointer-events: none;
-    transition: var(--transition);
-}
-
-.sub-actions.active {
-    opacity: 1;
-    transform: translateY(0);
-    pointer-events: all;
-}
-
-.sub-action-btn {
-    width: 100%;
-    background: var(--gray-50);
-    color: var(--gray-700);
-    border: 1px solid var(--gray-200);
-    padding: 1rem;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 500;
-    font-size: 0.875rem;
-    margin-bottom: 0.5rem;
-    transition: var(--transition);
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    text-align: left;
-}
-
-.sub-action-btn:last-child {
-    margin-bottom: 0;
-}
-
-.sub-action-btn:hover {
-    background: var(--light-blue);
-    color: var(--primary-blue);
-    border-color: var(--accent-blue);
-    transform: translateX(4px);
-}
-
-.sub-action-btn.selected {
-    background: var(--gradient-success);
-    color: var(--white);
-    border-color: var(--success-green);
-    font-weight: 600;
-    box-shadow: var(--shadow-md);
-}
-
-.sub-icon {
-    font-size: 1rem;
-    flex-shrink: 0;
-}
-
-/* Custom Question Section */
-.custom-question-section {
-    border-top: 2px solid var(--gray-200);
-    padding-top: 2rem;
-}
-
-.section-divider {
-    text-align: center;
-    margin: 1rem 0 2rem;
-    position: relative;
-}
-
-.section-divider::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: var(--gray-300);
-}
-
-.divider-text {
-    background: var(--white);
-    color: var(--gray-600);
-    padding: 0 1rem;
-    font-weight: 600;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.875rem;
-    position: relative;
-}
-
-.custom-question-section h5 {
-    color: var(--primary-blue);
-    font-weight: 700;
-    margin-bottom: 1rem;
-    font-family: 'JetBrains Mono', monospace;
-    text-transform: uppercase;
-    letter-spacing: 0.025em;
-    font-size: 0.875rem;
-}
-
-/* Selected Action Display */
-.selected-action-display {
-    background: var(--gradient-success);
-    color: var(--white);
-    padding: 1rem 1.5rem;
-    border-radius: 12px;
-    margin: 1rem 0;
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-    animation: slideIn 0.3s ease-out;
-}
-
-.selected-action-content {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-}
-
-.selected-action-label {
-    font-weight: 600;
-    font-size: 0.875rem;
-    text-transform: uppercase;
-    letter-spacing: 0.025em;
-}
-
-.selected-action-text {
-    font-weight: 700;
-    font-size: 1rem;
-    flex: 1;
-}
-
-.clear-action-btn {
-    background: rgba(255, 255, 255, 0.2);
-    color: var(--white);
-    border: none;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 1.25rem;
-    transition: var(--transition);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.clear-action-btn:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: scale(1.1);
 }
 
 @keyframes slideIn {

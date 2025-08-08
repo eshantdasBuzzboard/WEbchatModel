@@ -1,9 +1,9 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
+from typing import Optional, List, Dict, Any
 import json
 import logging
 import traceback
-from typing import Optional
 
 from test_data import (
     main_payload_test_data,
@@ -31,7 +31,16 @@ class AIRequest(BaseModel):
     webpage_output: dict
     payload_output: dict
     business_info: dict
-    action_type: Optional[str] = None  # New field for action type
+    action_type: Optional[str] = None
+
+
+class SelectionRequest(BaseModel):
+    selected_option: Dict[str, Any]  # The selected option from suggestions
+    current_set: int
+    current_page: int
+    webpage_output: dict
+    payload_output: dict
+    business_info: dict
 
 
 def get_page_titles_flexible(combined_data, element_index):
@@ -44,6 +53,56 @@ def get_page_titles_flexible(combined_data, element_index):
         elif pages and "Page Name" in pages[0]:
             return [page["Page Name"] for page in pages]
     return []
+
+
+def apply_selection_to_content(webpage_output: dict, selection: Dict[str, Any]) -> dict:
+    """
+    Apply the selected option to the webpage content
+    """
+    try:
+        # Extract selection details
+        section = selection.get("section", "")
+        selected_output = selection.get("selected_output", "")
+
+        logger.info(f"Applying selection: {selected_output} to section: {section}")
+
+        # Create a copy of the webpage output to modify
+        updated_content = webpage_output.copy()
+
+        # Map the section to the correct field in webpage_output
+        section_mapping = {
+            "Meta Title": "Meta Title (30 to 60 Characters)",
+            "Meta Description": "Meta Description (70 to 143 Characters)",
+            "Hero Title": "Hero Title (20 to 70 Characters)",
+            "Hero Text": "Hero Text (50 to 100 Characters)",
+            "Hero CTA": "Hero CTA",
+            "H1": "H1 (30 to 70 Characters)",
+            "H1 Content": "H1 Content",
+            "Header": "Header",
+            "Leading Sentence": "Leading Sentence",
+            "CTA Button": "CTA Button",
+        }
+
+        # Get the correct field name
+        field_name = section_mapping.get(section, section)
+
+        # Apply the selected output to the content
+        if field_name in updated_content:
+            updated_content[field_name] = selected_output
+            logger.info(f"Successfully updated {field_name} with: {selected_output}")
+        else:
+            # Handle H2 sections and other complex structures
+            if section.startswith("H2") and "h2_sections" in updated_content:
+                # Handle H2 section updates - would need specific logic based on H2 structure
+                logger.info(f"H2 section update needed for: {section}")
+            else:
+                logger.warning(f"Field {field_name} not found in webpage content")
+
+        return updated_content
+
+    except Exception as e:
+        logger.error(f"Error applying selection to content: {str(e)}")
+        raise
 
 
 @router.get("/data/{set_number}")
@@ -72,7 +131,6 @@ async def ask_ai(request: AIRequest):
     webpage_output = request.webpage_output
     payload_output = request.payload_output
     action_type = request.action_type
-    # business_info_data = request.business_info
 
     page_name = webpage_output.get(
         "Page Name", payload_output.get("title", f"Page {current_page + 1}")
@@ -81,16 +139,12 @@ async def ask_ai(request: AIRequest):
 
     # Determine the actual question to process
     if action_type and action_type in ACTION_QUESTIONS:
-        # Use predefined action question
         actual_question = ACTION_QUESTIONS[action_type]
         logger.info(f"Processing action: {action_type} -> {actual_question}")
     elif user_question and user_question.strip():
-        # Use custom user question
         logger.info(f"Processing question: {user_question}")
         actual_question = user_question
-
     else:
-        # No valid question provided
         return {
             "success": False,
             "response": "No question or action provided",
@@ -131,126 +185,179 @@ async def ask_ai(request: AIRequest):
                 else str(selected_text)
             )
 
-            # Use the actual question (either from action or user input)
+            # Call the workflow function
             response = await get_updated_page_content_openai(
                 payload_output,
                 webpage_output_for_api,
                 page_name,
-                actual_question,  # Use actual_question instead of user_question
+                actual_question,
                 selected_text_fixed,
                 content_section,
                 all_pages_names,
             )
 
             logger.info("=" * 60)
-            logger.info(f"Response \n {response}")
-            logger.info(f"{content_section}")
-            logger.info("OPENAI RESPONSE RECEIVED:")
             logger.info(f"Response type: {type(response)}")
-            logger.info(f"Response is list: {isinstance(response, list)}")
-            logger.info(f"Response is string: {isinstance(response, str)}")
+            logger.info("WORKFLOW RESPONSE RECEIVED")
 
-            try:
-                if isinstance(response, (dict, list)):
-                    logger.info(
-                        f"Response content (JSON): {json.dumps(response, indent=2, ensure_ascii=False)}"
-                    )
-                else:
-                    logger.info(f"Response content (raw): {response}")
-            except Exception as log_error:
-                logger.info(f"Could not serialize response for logging: {log_error}")
-                logger.info(f"Response content (str): {str(response)}")
+            # Handle different response types
+            if isinstance(response, list) and len(response) > 0:
+                # Check if this is the new suggestions format
+                first_item = response[0]
+                if isinstance(first_item, dict) and "outputs_list" in first_item:
+                    logger.info("Processing as suggestions response")
 
-            logger.info("=" * 60)
-
-            if isinstance(response, list):
-                logger.info("Processing as successful update (list response)")
-
-                updated_page = extract_updated_page_from_response(
-                    response, current_set, current_page
-                )
-                logger.info(f"Updated Page \n {updated_page}")
-
-                if updated_page:
-                    logger.info(
-                        f"Successfully extracted updated page for Set {current_set}, Page {current_page}"
-                    )
-
-                    converted_page = convert_page_keys_for_update(updated_page)
-
-                    logger.info(f"Original page keys: {list(updated_page.keys())}")
-                    logger.info(f"Converted page keys: {list(converted_page.keys())}")
-                    logger.info(
-                        f"Page_Name in converted page: {converted_page.get('Page_Name', 'NOT FOUND')}"
-                    )
-
-                    # Create success message based on action type
-                    if action_type:
-                        success_message = f"Content successfully {ACTION_QUESTIONS[action_type].lower()}!"
-                    else:
-                        success_message = "Page content has been updated successfully!"
+                    # Format suggestions for frontend
+                    suggestions = []
+                    for item in response:
+                        suggestion = {
+                            "outputs_list": item.get("outputs_list", []),
+                            "index": item.get("index", 0),
+                            "section": item.get("section", ""),
+                            "original_text": selected_text_fixed,
+                        }
+                        suggestions.append(suggestion)
 
                     return {
                         "success": True,
-                        "response": success_message,
-                        "updated_content": [converted_page],
+                        "response_type": "suggestions",
+                        "suggestions": suggestions,
+                        "message": f"Here are suggested improvements for the selected text in the {content_section} section:",
                         "summary": simplified_response,
                         "action_applied": action_type,
                     }
                 else:
-                    logger.error("Failed to extract updated page from response")
-                    return {
-                        "success": True,
-                        "response": "Update failed: Could not extract updated page from response",
-                        "updated_content": "Could not extract updated page from response",
-                        "summary": simplified_response,
-                    }
+                    # This is the legacy direct update format
+                    logger.info("Processing as direct update response (legacy format)")
+
+                    updated_page = extract_updated_page_from_response(
+                        response, current_set, current_page
+                    )
+
+                    if updated_page:
+                        converted_page = convert_page_keys_for_update(updated_page)
+
+                        success_message = (
+                            f"Content successfully updated!"
+                            if not action_type
+                            else f"Content successfully {ACTION_QUESTIONS[action_type].lower()}!"
+                        )
+
+                        return {
+                            "success": True,
+                            "response_type": "direct_update",
+                            "response": success_message,
+                            "updated_content": [converted_page],
+                            "summary": simplified_response,
+                            "action_applied": action_type,
+                        }
+                    else:
+                        return {
+                            "success": True,
+                            "response": "Update failed: Could not extract updated page from response",
+                            "updated_content": "Could not extract updated page from response",
+                            "summary": simplified_response,
+                        }
 
             elif isinstance(response, str):
-                logger.info("Processing as failed update (string response)")
+                logger.info("Processing as error response (string)")
                 return {
                     "success": True,
+                    "response_type": "error",
                     "response": f"Update failed: {response}",
                     "updated_content": response,
                     "summary": simplified_response,
                 }
+            else:
+                logger.error(f"Unexpected response format: {type(response)}")
+                return {
+                    "success": False,
+                    "response": "Unexpected response format from AI",
+                    "summary": simplified_response,
+                }
+
         except Exception as e:
             tb_str = traceback.format_exc()
-            logger.error(f"Exception in get_updated_page_content_openai: {str(e)}")
-            logger.error(f"Exception type: {type(e)}")
+            logger.error(f"Exception in ask_ai: {str(e)}")
             logger.error(f"Traceback:\n{tb_str}")
-            error_message = (
-                f"Error during update: {str(e)}\n"
-                f"Exception Type: {type(e)}\n"
-                f"Traceback:\n{tb_str}"
-            )
+
             return {
                 "success": False,
-                "response": error_message,
-                "updated_content": error_message,
+                "response": f"Error processing request: {str(e)}",
+                "error": str(e),
                 "summary": simplified_response,
             }
     else:
-        logger.info("Processing as regular AI response (no update request)")
+        logger.info("Processing as regular AI response (no selected text)")
 
         if action_type:
             ai_response = f"""Set: {current_set} | Page: {page_name} | Section: {content_section}
 
-Selected Text: "{selected_text}"
 Action: {ACTION_QUESTIONS[action_type]}
 
-AI Analysis: This appears to be a predefined action request, but the system determined it's not an update operation. This might be because no text was selected or the content doesn't require updating."""
+AI Analysis: This appears to be a predefined action request, but no text was selected. Please select text first to apply actions."""
         else:
             ai_response = f"""Set: {current_set} | Page: {page_name} | Section: {content_section}
 
-Selected Text: "{selected_text}"
 Question: {actual_question}
 
 AI Analysis: This is a regular AI response. To update page content, try selecting text and asking questions about modifying, updating, or improving the content."""
 
         return {
             "success": True,
+            "response_type": "info",
             "response": ai_response,
             "summary": simplified_response,
             "action_applied": action_type,
+        }
+
+
+@router.post("/apply-selection")
+async def apply_selection(request: SelectionRequest):
+    """
+    Apply the selected suggestion to the content
+    """
+    try:
+        selected_option = request.selected_option
+        current_set = request.current_set
+        current_page = request.current_page
+        webpage_output = request.webpage_output
+        payload_output = request.payload_output
+
+        logger.info("=" * 60)
+        logger.info("APPLYING USER SELECTION:")
+        logger.info(f"Selection: {json.dumps(selected_option, indent=2)}")
+        logger.info("=" * 60)
+
+        # Apply the selection to the webpage content
+        updated_content = apply_selection_to_content(webpage_output, selected_option)
+
+        # Convert to the format expected by the frontend
+        converted_page = convert_page_keys_for_update(updated_content)
+
+        logger.info("Selection successfully applied and converted for frontend")
+
+        return {
+            "success": True,
+            "response": "Content successfully updated with your selection!",
+            "updated_content": [converted_page],
+            "summary": {
+                "set_number": current_set - 1,
+                "page_name": webpage_output.get(
+                    "Page Name", f"Page {current_page + 1}"
+                ),
+                "selected_section": selected_option.get("section", ""),
+                "selected_output": selected_option.get("selected_output", ""),
+            },
+        }
+
+    except Exception as e:
+        tb_str = traceback.format_exc()
+        logger.error(f"Exception in apply_selection: {str(e)}")
+        logger.error(f"Traceback:\n{tb_str}")
+
+        return {
+            "success": False,
+            "response": f"Error applying selection: {str(e)}",
+            "error": str(e),
         }
